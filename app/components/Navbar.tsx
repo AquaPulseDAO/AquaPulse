@@ -17,6 +17,8 @@ export default function Navbar() {
           <Link href="/data" className="hover:text-white">Data</Link>
           <Link href="/access" className="hover:text-white">Access</Link>
           <Link href="/host" className="hover:text-white">Host</Link>
+          {/* NEW */}
+          <Link href="/device" className="hover:text-white">Device</Link>
         </nav>
 
         <div className="inline-flex">
