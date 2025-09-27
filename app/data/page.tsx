@@ -3,14 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import BackgroundVideo from "../components/BackgroundVideo";
 
-// Ultra‑minimal demo page to:
-// 1) Add/select a device WITH its default vault name
-// 2) Upload a CSV (demo‑only) that may include a `vault` column
-//    – if not present, we use the selected device's vault name
-// No on‑chain calls here; just parsing + preview + simulated publish.
-
 export default function DataPage() {
-  // Devices are kept in localStorage for convenience
   const [devices, setDevices] = useState(() => {
     if (typeof window === "undefined") return [];
     try {
@@ -22,12 +15,10 @@ export default function DataPage() {
   });
   const [selIndex, setSelIndex] = useState(0);
 
-  // New device form
   const [devId, setDevId] = useState("");
   const [devName, setDevName] = useState("");
   const [devVault, setDevVault] = useState("");
 
-  // CSV state
   const [cols, setCols] = useState([]);
   const [rows, setRows] = useState([]);
   const [fileName, setFileName] = useState("");
@@ -42,7 +33,6 @@ export default function DataPage() {
 
   const selDevice = useMemo(() => devices[selIndex], [devices, selIndex]);
 
-  // Keep CSV vault default in sync with selected device (only if empty)
   useEffect(() => {
     if (!csvVault && selDevice?.vault) setCsvVault(selDevice.vault);
   }, [selDevice, csvVault]);
@@ -52,7 +42,14 @@ export default function DataPage() {
       alert("Please fill at least Device ID and Vault name");
       return;
     }
-    const next = [...devices, { id: devId.trim(), name: devName.trim() || devId.trim(), vault: devVault.trim() }];
+    const next = [
+      ...devices,
+      {
+        id: devId.trim(),
+        name: devName.trim() || devId.trim(),
+        vault: devVault.trim(),
+      },
+    ];
     setDevices(next);
     setSelIndex(next.length - 1);
     setDevId("");
@@ -68,7 +65,6 @@ export default function DataPage() {
     setSelIndex(0);
   }
 
-  // --- Minimal CSV parser (supports quotes and commas in quotes) ---
   function splitCSVLine(line) {
     const out = [];
     let cur = "";
@@ -76,10 +72,18 @@ export default function DataPage() {
     for (let i = 0; i < line.length; i++) {
       const ch = line[i];
       if (ch === '"') {
-        if (inQ && line[i + 1] === '"') { cur += '"'; i++; } else { inQ = !inQ; }
+        if (inQ && line[i + 1] === '"') {
+          cur += '"';
+          i++;
+        } else {
+          inQ = !inQ;
+        }
       } else if (ch === "," && !inQ) {
-        out.push(cur); cur = "";
-      } else { cur += ch; }
+        out.push(cur);
+        cur = "";
+      } else {
+        cur += ch;
+      }
     }
     out.push(cur);
     return out.map((s) => s.trim());
@@ -114,7 +118,6 @@ export default function DataPage() {
     if (inputRef.current) inputRef.current.value = "";
   }
 
-  // Demo CSV using the selected device + its vault name
   function downloadDemoCSV() {
     const d = selDevice?.id || "dev-001";
     const v = csvVault || selDevice?.vault || "vault-001";
@@ -127,7 +130,9 @@ export default function DataPage() {
     const blob = new Blob([lines], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = url; a.download = "aquapulse-demo.csv"; a.click();
+    a.href = url;
+    a.download = "aquapulse-demo.csv";
+    a.click();
     URL.revokeObjectURL(url);
   }
 
@@ -141,116 +146,159 @@ export default function DataPage() {
       vault: r.vault || csvVault || selDevice.vault,
     }));
     console.log("DEMO — would publish rows:", resolved);
-    alert(`Demo: ${resolved.length} row(s) ready (device="${selDevice.id}", vault="${selDevice.vault}")`);
+    alert(
+      `Demo: ${resolved.length} row(s) ready (device="${selDevice.id}", vault="${selDevice.vault}")`
+    );
     clearCSV();
   }
 
   return (
     <div className="relative min-h-screen text-white">
-      {/* Background Video */}
       <BackgroundVideo />
 
       <main className="relative z-10 mx-auto max-w-5xl px-4 py-10">
-      <h1 className="text-2xl font-semibold">Data • Add device & CSV (demo)</h1>
+        <h1 className="text-2xl font-semibold">
+          Data • Add device & CSV (demo)
+        </h1>
 
-      {/* Device card */}
-      <section className="mt-6 rounded-2xl border border-white/10 bg-white/10 p-5">
-        <h2 className="text-lg font-semibold">Devices</h2>
-        <p className="text-sm text-white/70">Each device stores a default <b>vault name</b> used when CSV rows have no vault.</p>
+        {/* Devices */}
+        <section className="mt-6 rounded-2xl border border-white/10 bg-white/10 p-5">
+          <h2 className="text-lg font-semibold">Devices</h2>
+          <p className="text-sm text-white/70">
+            Each device stores a default <b>vault name</b> used when CSV rows
+            have no vault.
+          </p>
 
-        <div className="mt-4 grid gap-3 sm:grid-cols-3">
-          <input value={devId} onChange={(e) => setDevId(e.target.value)} placeholder="Device ID (required)"
-                 className="rounded-lg bg-white/10 border border-white/10 px-3 py-2" />
-          <input value={devName} onChange={(e) => setDevName(e.target.value)} placeholder="Device name (optional)"
-                 className="rounded-lg bg-white/10 border border-white/10 px-3 py-2" />
-          <input value={devVault} onChange={(e) => setDevVault(e.target.value)} placeholder="Vault name (required)"
-                 className="rounded-lg bg-white/10 border border-white/10 px-3 py-2" />
-        </div>
-        <div className="mt-3 flex gap-2">
-          <button onClick={addDevice} className="rounded-lg bg-sky-400 text-slate-900 px-4 py-2 font-medium">Add device</button>
-          <button onClick={removeSelected} className="rounded-lg border border-white/10 bg-white/10 px-4 py-2">Remove selected</button>
-        </div>
+          <div className="mt-4 grid gap-3 sm:grid-cols-3">
+            <input
+              value={devId}
+              onChange={(e) => setDevId(e.target.value)}
+              placeholder="Device ID (required)"
+              className="rounded-lg bg-white/10 border border-white/10 px-3 py-2"
+            />
+            <input
+              value={devName}
+              onChange={(e) => setDevName(e.target.value)}
+              placeholder="Device name (optional)"
+              className="rounded-lg bg-white/10 border border-white/10 px-3 py-2"
+            />
+            <input
+              value={devVault}
+              onChange={(e) => setDevVault(e.target.value)}
+              placeholder="Vault name (required)"
+              className="rounded-lg bg-white/10 border border-white/10 px-3 py-2"
+            />
+          </div>
+          <div className="mt-3 flex gap-2">
+            <button
+              onClick={addDevice}
+              className="rounded-lg bg-sky-400 text-slate-900 px-4 py-2 font-medium"
+            >
+              Add device
+            </button>
+            <button
+              onClick={removeSelected}
+              className="rounded-lg border border-white/10 bg-white/10 px-4 py-2"
+            >
+              Remove selected
+            </button>
+          </div>
 
-        {/* Device selector */}
-        <div className="mt-4">
-          <label className="text-sm text-white/70">Selected device</label>
-          <select
-            className="mt-2 w-full rounded-lg bg-white/10 border border-white/10 px-3 py-2"
-            value={selIndex}
-            onChange={(e) => setSelIndex(parseInt(e.target.value, 10))}
-          >
-            {devices.length === 0 && <option value={0}>No device</option>}
-            {devices.map((d, i) => (
-              <option key={`${d.id}-${i}`} value={i}>
-                {d.name || d.id} — id:{d.id} — vault:{d.vault}
-              </option>
-            ))}
-          </select>
-        </div>
-      </section>
+          <div className="mt-4">
+            <label className="text-sm text-white/70">Selected device</label>
+            <select
+              className="mt-2 w-full rounded-lg bg-white/10 border border-white/10 px-3 py-2"
+              value={selIndex}
+              onChange={(e) => setSelIndex(parseInt(e.target.value, 10))}
+            >
+              {devices.length === 0 && <option value={0}>No device</option>}
+              {devices.map((d, i) => (
+                <option key={`${d.id}-${i}`} value={i}>
+                  {d.name || d.id} — id:{d.id} — vault:{d.vault}
+                </option>
+              ))}
+            </select>
+          </div>
+        </section>
 
-      {/* CSV card */}
-      <section className="mt-6 rounded-2xl border border-white/10 bg-white/10 p-5">
-        <h2 className="text-lg font-semibold">CSV (demo)</h2>
-        <p className="text-sm text-white/70">
-          Required: <code>title,lat,lon</code>. Optional: <code>ph,ec,ntu,temp,desc,device,vault</code>.
-          If a row has no <code>vault</code>, the selected device's vault is used (or the CSV default below).
-        </p>
+        {/* CSV */}
+        <section className="mt-6 rounded-2xl border border-white/10 bg-white/10 p-5">
+          <h2 className="text-lg font-semibold">CSV (demo)</h2>
+          <p className="text-sm text-white/70">
+            Required: <code>title,lat,lon</code>. Optional:{" "}
+            <code>ph,ec,ntu,temp,desc,device,vault</code>.
+          </p>
 
-        {/* CSV default vault name */}
-        <div className="mt-3">
-          <label className="block text-sm text-white/70">CSV default vault name</label>
-          <input
-            value={csvVault}
-            onChange={(e) => setCsvVault(e.target.value)}
-            placeholder="Vault name (used if CSV has no vault column)"
-            className="mt-1 w-full rounded-lg bg-white/10 border border-white/10 px-3 py-2"
-          />
-          <p className="mt-1 text-xs text-white/60">If left empty, we fall back to the selected device's vault.</p>
-        </div>
+          <div className="mt-3">
+            <label className="block text-sm text-white/70">
+              CSV default vault name
+            </label>
+            <input
+              value={csvVault}
+              onChange={(e) => setCsvVault(e.target.value)}
+              placeholder="Vault name (used if CSV has no vault column)"
+              className="mt-1 w-full rounded-lg bg-white/10 border border-white/10 px-3 py-2"
+            />
+          </div>
 
-        <div className="mt-3 flex flex-wrap items-center gap-3">
-          <input ref={inputRef} type="file" accept=".csv,text/csv" onChange={onPickCSV}
-                 className="file:mr-3 file:rounded-md file:border-0 file:bg-white/10 file:px-3 file:py-2 file:text-white hover:file:bg-white/15" />
-          <button type="button" onClick={downloadDemoCSV}
-                  className="rounded-lg border border-white/10 bg-white/10 px-3 py-2">Download demo CSV</button>
-          <span className="text-sm text-white/70">{fileName || "No file selected"}</span>
-          <button type="button" onClick={clearCSV}
-                  className="ml-auto rounded-lg border border-white/10 bg-white/10 px-3 py-2">Clear</button>
-        </div>
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            {/* Suppression du bouton input type=file */}
+            <button
+              type="button"
+              onClick={downloadDemoCSV}
+              className="rounded-lg border border-white/10 bg-white/10 px-3 py-2"
+            >
+              Download demo CSV
+            </button>
+            <button
+              type="button"
+              onClick={clearCSV}
+              className="ml-auto rounded-lg border border-white/10 bg-white/10 px-3 py-2"
+            >
+              Clear
+            </button>
+          </div>
 
-        {/* Preview */}
-        {!!rows.length && (
-          <div className="mt-4 overflow-x-auto rounded-lg border border-white/10">
-            <table className="min-w-full text-sm">
-              <thead className="bg-white/5">
-                <tr>
-                  {cols.map((c) => (
-                    <th key={c} className="px-3 py-2 text-left">{c}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {rows.slice(0, 5).map((r, i) => (
-                  <tr key={i} className="odd:bg-white/0 even:bg-white/5">
+          {!!rows.length && (
+            <div className="mt-4 overflow-x-auto rounded-lg border border-white/10">
+              <table className="min-w-full text-sm">
+                <thead className="bg-white/5">
+                  <tr>
                     {cols.map((c) => (
-                      <td key={c} className="px-3 py-2">{r[c] || ""}</td>
+                      <th key={c} className="px-3 py-2 text-left">
+                        {c}
+                      </th>
                     ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-            <div className="px-3 py-2 text-xs text-white/70">Showing {Math.min(5, rows.length)} of {rows.length}</div>
-          </div>
-        )}
+                </thead>
+                <tbody>
+                  {rows.slice(0, 5).map((r, i) => (
+                    <tr key={i} className="odd:bg-white/0 even:bg-white/5">
+                      {cols.map((c) => (
+                        <td key={c} className="px-3 py-2">
+                          {r[c] || ""}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="px-3 py-2 text-xs text-white/70">
+                Showing {Math.min(5, rows.length)} of {rows.length}
+              </div>
+            </div>
+          )}
 
-        <form onSubmit={onPublishDemo} className="mt-3">
-          <button className="rounded-lg bg-emerald-400 text-slate-900 px-4 py-2 font-medium" disabled={!rows.length || !selDevice}>
-            {rows.length ? `Publish demo (${rows.length})` : "Publish demo"}
-          </button>
-        </form>
-      </section>
-    </main>
+          <form onSubmit={onPublishDemo} className="mt-3">
+            <button
+              className="rounded-lg bg-emerald-400 text-slate-900 px-4 py-2 font-medium"
+              disabled={!rows.length || !selDevice}
+            >
+              {rows.length ? `Publish demo (${rows.length})` : "Publish demo"}
+            </button>
+          </form>
+        </section>
+      </main>
     </div>
   );
 }
