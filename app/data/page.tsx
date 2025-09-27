@@ -4,231 +4,221 @@ import { useRef, useState } from "react";
 import BackgroundVideo from "../components/BackgroundVideo";
 import { useCurrentAccount } from "@mysten/dapp-kit";
 
+type Row = Record<string, string>;
+
 export default function PublishDataPage() {
   const account = useCurrentAccount();
 
-  const [title, setTitle] = useState("");
-  const [ph, setPh] = useState("");
-  const [ec, setEc] = useState("");     // conductivity (µS/cm)
-  const [ntu, setNtu] = useState("");   // turbidity (NTU)
-  const [temp, setTemp] = useState(""); // temperature (°C)
-  const [lat, setLat] = useState("");
-  const [lon, setLon] = useState("");
-  const [desc, setDesc] = useState("");
-
-  const [file, setFile] = useState<File | null>(null);
-  const [preview, setPreview] = useState<string | null>(null);
-
+  const [csvFile, setCsvFile] = useState<File | null>(null);
+  const [columns, setColumns] = useState<string[]>([]);
+  const [rows, setRows] = useState<Row[]>([]);
+  const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [ok, setOk] = useState(false);
+  const [ok, setOk] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
-  function onPick(e: React.ChangeEvent<HTMLInputElement>) {
-    const f = e.target.files?.[0];
-    setFile(f ?? null);
-    setPreview(f ? URL.createObjectURL(f) : null);
+  // --- Minimal CSV parser with quoted fields support ---
+  function splitCSVLine(line: string): string[] {
+    const out: string[] = [];
+    let cur = "";
+    let inQuotes = false;
+
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') {
+        if (inQuotes && line[i + 1] === '"') {
+          cur += '"'; // escaped quote
+          i++;
+        } else {
+          inQuotes = !inQuotes;
+        }
+      } else if (ch === "," && !inQuotes) {
+        out.push(cur);
+        cur = "";
+      } else {
+        cur += ch;
+      }
+    }
+    out.push(cur);
+    return out.map((s) => s.trim());
   }
 
-  function getLocation() {
-    if (!navigator.geolocation) return alert("Geolocation not supported.");
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setLat(String(pos.coords.latitude.toFixed(6)));
-        setLon(String(pos.coords.longitude.toFixed(6)));
-      },
-      (err) => alert(`Location error: ${err.message}`),
-      { enableHighAccuracy: true, timeout: 8000 }
-    );
+  function parseCSV(text: string): { headers: string[]; data: Row[] } {
+    const lines = text.split(/\r?\n/).filter((l) => l.trim().length > 0);
+    if (lines.length === 0) throw new Error("Empty CSV.");
+    const headers = splitCSVLine(lines[0]).map((h) => h.toLowerCase());
+    const data: Row[] = [];
+
+    for (let i = 1; i < lines.length; i++) {
+      const parts = splitCSVLine(lines[i]);
+      const row: Row = {};
+      headers.forEach((h, idx) => (row[h] = (parts[idx] ?? "").trim()));
+      data.push(row);
+    }
+    return { headers, data };
+  }
+
+  async function onPickCSV(e: React.ChangeEvent<HTMLInputElement>) {
+    setError(null);
+    const f = e.target.files?.[0];
+    setCsvFile(f ?? null);
+    setColumns([]);
+    setRows([]);
+
+    if (!f) return;
+    if (!/\.csv$/i.test(f.name) && !/text\/csv/.test(f.type)) {
+      setError("Please select a .csv file.");
+      return;
+    }
+
+    const text = await f.text();
+    try {
+      const { headers, data } = parseCSV(text);
+      // Minimal validation: title, lat, lon required headers
+      const required = ["title", "lat", "lon"];
+      const missing = required.filter((h) => !headers.includes(h));
+      if (missing.length) {
+        setError(`Missing required columns: ${missing.join(", ")}`);
+        return;
+      }
+      setColumns(headers);
+      setRows(data);
+    } catch (err: any) {
+      setError(err?.message || "Failed to parse CSV.");
+    }
+  }
+
+  function clearCSV() {
+    setCsvFile(null);
+    setColumns([]);
+    setRows([]);
+    setError(null);
+    if (inputRef.current) inputRef.current.value = "";
   }
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!account) return alert("Connect your wallet in the top bar first.");
+    if (rows.length === 0) return setError("Please upload a CSV first.");
 
     setBusy(true);
+    setError(null);
     try {
       // TODO: Replace with your Move call using @mysten/sui
-      // Package fields: { title, ph, ec, ntu, temp, lat, lon, desc, file? }
-      await new Promise((r) => setTimeout(r, 800)); // simulate
-      setOk(true);
-      setTimeout(() => setOk(false), 1600);
+      // Example: for (const r of rows) publish r.title, r.ph, r.ec, r.ntu, r.temp, r.lat, r.lon, r.desc
+      await new Promise((r) => setTimeout(r, 900)); // simulate
+      setOk(`Published ${rows.length} row(s) to Sui!`);
 
-      // Reset
-      setTitle(""); setPh(""); setEc(""); setNtu(""); setTemp("");
-      setLat(""); setLon(""); setDesc(""); setFile(null); setPreview(null);
-      if (inputRef.current) inputRef.current.value = "";
+      // Reset (keep file name? choose to clear for safety)
+      clearCSV();
+      setTimeout(() => setOk(null), 1800);
+    } catch (err: any) {
+      setError(err?.message || "Failed to publish.");
     } finally {
       setBusy(false);
     }
   }
 
-  const isDisabled =
-    busy ||
-    !account ||
-    !title.trim() ||
-    !lat.trim() ||
-    !lon.trim() ||
-    (!ph.trim() && !ec.trim() && !ntu.trim() && !temp.trim());
+  const isDisabled = busy || !account || rows.length === 0;
 
   return (
     <div className="relative">
-      {/* Vidéo uniquement pour /data */}
+      {/* Video only on /data */}
       <BackgroundVideo />
 
       <div className="relative z-0 mx-auto max-w-5xl px-4 py-12">
-        <h1 className="text-3xl md:text-4xl font-bold">Publish data</h1>
+        <h1 className="text-3xl md:text-4xl font-bold">Publish data (CSV)</h1>
         <p className="mt-2 text-slate-300">
-          Share a new water-quality reading on Sui. Connect your wallet in the top bar to publish.
+          Upload a CSV with columns: <span className="font-semibold">title, lat, lon</span>{" "}
+          (optional: <span className="font-semibold">ph, ec, ntu, temp, desc</span>).
         </p>
 
         <form
           onSubmit={onSubmit}
           className="relative mt-8 rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm shadow-lg"
         >
-          {/* Success toast */}
+          {/* Toasts */}
           {ok && (
             <div className="pointer-events-none absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 rounded-xl bg-emerald-400/90 px-6 py-3 text-slate-900 font-semibold shadow-lg">
-              Upload success!!
+              {ok}
+            </div>
+          )}
+          {error && (
+            <div className="mb-4 rounded-xl bg-rose-500/15 border border-rose-400/30 px-4 py-3 text-rose-100">
+              {error}
             </div>
           )}
 
-          <div className="grid gap-6 md:grid-cols-[1.2fr,1fr]">
-            {/* Colonne gauche: image + description */}
+          {/* CSV picker */}
+          <div className="grid gap-4 md:grid-cols-[1fr,auto] md:items-end">
             <div>
-              <label className="block text-sm font-semibold">Photo (optional)</label>
-              <div className="mt-2 rounded-xl border border-white/10 bg-white/5 overflow-hidden">
-                <div className="relative aspect-[4/3]">
-                  {preview ? (
-                    // Utiliser <img> pour supporter blob: URLs sans config Next/Image
-                    <img src={preview} alt="preview" className="h-full w-full object-cover" />
-                  ) : (
-                    <div className="absolute inset-0 grid place-items-center text-slate-400">
-                      No image
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="mt-3">
-                <input
-                  ref={inputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={onPick}
-                  className="block w-full text-sm file:mr-4 file:rounded-lg file:border-0 file:bg-sky-400 file:px-4 file:py-2 file:font-semibold file:text-slate-900 hover:file:bg-sky-300"
-                />
-              </div>
-
-              <div className="mt-4">
-                <label className="block text-sm font-semibold">Description</label>
-                <textarea
-                  value={desc}
-                  onChange={(e) => setDesc(e.target.value)}
-                  rows={4}
-                  placeholder="Short note about location, weather, calibration…"
-                  className="mt-2 w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2 outline-none focus:ring-2 focus:ring-sky-400/50"
-                />
-              </div>
+              <label className="block text-sm font-semibold">CSV file</label>
+              <input
+                ref={inputRef}
+                type="file"
+                accept=".csv,text/csv"
+                onChange={onPickCSV}
+                className="mt-2 block w-full text-sm file:mr-4 file:rounded-lg file:border-0 file:bg-sky-400 file:px-4 file:py-2 file:font-semibold file:text-slate-900 hover:file:bg-sky-300"
+              />
+              <p className="mt-2 text-xs text-slate-300/90">
+                Example header: <code className="font-mono">title,lat,lon,ph,ec,ntu,temp,desc</code>
+              </p>
             </div>
 
-            {/* Colonne droite: champs */}
-            <div>
-              <label className="block text-sm font-semibold">Title</label>
-              <input
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="e.g., pH at Pont Neuf"
-                className="mt-2 w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2 outline-none focus:ring-2 focus:ring-sky-400/50"
-                required
-              />
-
-              <div className="mt-5 grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold">pH</label>
-                  <input
-                    value={ph}
-                    onChange={(e) => setPh(e.target.value)}
-                    placeholder="e.g., 7.2"
-                    className="mt-1 w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2 outline-none focus:ring-2 focus:ring-sky-400/50"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold">Conductivity (µS/cm)</label>
-                  <input
-                    value={ec}
-                    onChange={(e) => setEc(e.target.value)}
-                    placeholder="e.g., 580"
-                    className="mt-1 w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2 outline-none focus:ring-2 focus:ring-sky-400/50"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold">Turbidity (NTU)</label>
-                  <input
-                    value={ntu}
-                    onChange={(e) => setNtu(e.target.value)}
-                    placeholder="e.g., 2.3"
-                    className="mt-1 w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2 outline-none focus:ring-2 focus:ring-sky-400/50"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold">Temperature (°C)</label>
-                  <input
-                    value={temp}
-                    onChange={(e) => setTemp(e.target.value)}
-                    placeholder="e.g., 18.4"
-                    className="mt-1 w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2 outline-none focus:ring-2 focus:ring-sky-400/50"
-                  />
-                </div>
-              </div>
-
-              <div className="mt-5 grid grid-cols-2 gap-3">
-                <div>
-                  <div className="flex items-center justify-between">
-                    <label className="block text-xs font-semibold">Latitude</label>
-                    <button
-                      type="button"
-                      onClick={getLocation}
-                      className="text-xs rounded-full px-2 py-1 bg-white/10 hover:bg-white/20 transition"
-                      title="Use device GPS"
-                    >
-                      Get GPS
-                    </button>
-                  </div>
-                  <input
-                    value={lat}
-                    onChange={(e) => setLat(e.target.value)}
-                    placeholder="48.8566"
-                    className="mt-1 w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2 outline-none focus:ring-2 focus:ring-sky-400/50"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold">Longitude</label>
-                  <input
-                    value={lon}
-                    onChange={(e) => setLon(e.target.value)}
-                    placeholder="2.3522"
-                    className="mt-1 w-full rounded-xl bg-white/5 border border-white/10 px-3 py-2 outline-none focus:ring-2 focus:ring-sky-400/50"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="mt-8 flex justify-end">
-                <button
-                  type="submit"
-                  disabled={isDisabled}
-                  className={`rounded-xl px-6 py-2.5 font-semibold transition
-                    ${isDisabled
-                      ? "bg-white/10 text-slate-400 cursor-not-allowed"
-                      : "bg-sky-400 text-slate-900 hover:bg-sky-300"}`}
-                  title={!account ? "Connect your wallet in the top bar" : undefined}
-                >
-                  {busy ? "Publishing…" : "Publish to Sui"}
-                </button>
-              </div>
+            <div className="flex gap-2 md:justify-end">
+              <button
+                type="button"
+                onClick={clearCSV}
+                className="rounded-xl px-4 py-2 border border-white/15 hover:bg-white/5 transition"
+                disabled={!csvFile}
+                title="Clear selected file"
+              >
+                Clear
+              </button>
+              <button
+                type="submit"
+                disabled={isDisabled}
+                className={`rounded-xl px-6 py-2.5 font-semibold transition
+                  ${isDisabled
+                    ? "bg-white/10 text-slate-400 cursor-not-allowed"
+                    : "bg-sky-400 text-slate-900 hover:bg-sky-300"}`}
+                title={!account ? "Connect your wallet in the top bar" : undefined}
+              >
+                {busy ? "Publishing…" : rows.length > 0 ? `Publish ${rows.length} row(s)` : "Publish"}
+              </button>
             </div>
           </div>
+
+          {/* Preview (first 5 rows) */}
+          {rows.length > 0 && (
+            <div className="mt-6 overflow-auto rounded-xl border border-white/10">
+              <table className="min-w-full text-sm">
+                <thead className="bg-white/10">
+                  <tr>
+                    {columns.map((col) => (
+                      <th key={col} className="px-3 py-2 text-left font-semibold capitalize">
+                        {col}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                  {rows.slice(0, 5).map((r, idx) => (
+                    <tr key={idx} className="odd:bg-white/0 even:bg-white/[0.03]">
+                      {columns.map((c) => (
+                        <td key={c} className="px-3 py-2 text-slate-200/90">
+                          {r[c] ?? ""}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="px-3 py-2 text-xs text-slate-300/90">
+                Showing {Math.min(5, rows.length)} of {rows.length} row(s).
+              </div>
+            </div>
+          )}
         </form>
       </div>
     </div>
