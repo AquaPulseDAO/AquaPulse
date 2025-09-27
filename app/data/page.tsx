@@ -95,7 +95,7 @@ export default function DataPage() {
               htmlFor="csv-upload"
               className="rounded-lg border border-white/10 bg-white/10 px-3 py-2 cursor-pointer"
             >
-              Download CSV file
+              Upload CSV file
             </label>
             <input
               ref={inputRef}

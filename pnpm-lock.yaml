@@ -14,9 +14,15 @@ importers:
       '@mysten/enoki':
         specifier: ^0.12.1
         version: 0.12.1(@types/react@18.3.24)(react@19.1.1)(typescript@5.9.2)
+      '@mysten/seal':
+        specifier: ^0.8.0
+        version: 0.8.0(typescript@5.9.2)
       '@mysten/sui':
         specifier: 1.38.0
         version: 1.38.0(typescript@5.9.2)
+      '@mysten/walrus':
+        specifier: ^0.7.0
+        version: 0.7.0(typescript@5.9.2)
       '@radix-ui/react-navigation-menu':
         specifier: ^1.2.14
         version: 1.2.14(@types/react-dom@18.3.7(@types/react@18.3.24))(@types/react@18.3.24)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
@@ -413,6 +419,9 @@ packages:
   '@mysten/ledgerjs-hw-app-sui@0.6.0':
     resolution: {integrity: sha512-UopsSSI1gphfoh59feiPPhZUEybYIvYEcvmudGR2RAIN3IDJHkaA3Uu0HPH8BZQbQXhkgvFW4V2KNWIWj2IE2g==}
 
+  '@mysten/seal@0.8.0':
+    resolution: {integrity: sha512-G7oDqcQiBrCX3vYmTww7h2nX+wqd4/houutYbknGdt1h9oNYwpGiGHPq263je3jxYNd71skGsJ8WXkWm8orkyA==}
+
   '@mysten/signers@0.5.0':
     resolution: {integrity: sha512-BVbOJLTXLHzHSB/P2PHUSCEDnlQkkyQd8Xwl0ZTLEHMYWUeK9lMiKyijk+8dw8wF3hTJFfob7N8mBZ1PK3gJow==}
     engines: {node: '>=20'}
@@ -429,6 +438,12 @@ packages:
 
   '@mysten/wallet-standard@0.17.0':
     resolution: {integrity: sha512-UQ6tvqQ/lDKZhQm2d3ajky/xl+NgpYpNXYIpWfYGOLvGe4GyK6GHysMNHsRpFa+xA2yVa6w3nWO2RQ8WIy7ivA==}
+
+  '@mysten/walrus-wasm@0.1.1':
+    resolution: {integrity: sha512-j+12gNbPAIkgY7g1d4aCF2rXDpgTLQsyjEdu0s7A8xlu/95u5quP7Tc7Jz7VLFfbtkJigBpGyPZ/8J2tZv4cJA==}
+
+  '@mysten/walrus@0.7.0':
+    resolution: {integrity: sha512-UQf84CYP8bEkvq9T7mGSvQ3r1yQvBMQX+gJ3w5JldhqIp8qV0FRPbVYv+hokFAnmQuCJVHBJ4XX4iA5Jpyf4ww==}
 
   '@mysten/window-wallet-core@0.1.0':
     resolution: {integrity: sha512-QVFthpAv+HJBqoLjsE6gZylE28lrzEd/C68S5tyOCpRV6T3O+P3LCcFmNkLK8gNM6DJNHc/GZgM3f4rTNGOfAQ==}
@@ -1262,6 +1277,9 @@ packages:
 
   csstype@3.1.3:
     resolution: {integrity: sha512-M1uQkMl8rQK/szD0LNhtqxIPLpimGm8sOBwU7lLnCpSbTyY3yeU1Vc7l4KT5zT4s/yOxHH5O7tIuuLOCnLADRw==}
+
+  dataloader@2.2.3:
+    resolution: {integrity: sha512-y2krtASINtPFS1rSDjacrFgn1dcUuoREVabwlOGOe4SdxenREqwjwjElAdwvbGM7kgZz9a3KVicWR7vcz8rnzA==}
 
   debug@4.4.3:
     resolution: {integrity: sha512-RGwwWnwQvkVfavKVt22FGLw+xYSdzARwm0ru6DhTVA3umU5hZc28V3kO4stgYryrTlLpuvgI9GiijltAjNbcqA==}
@@ -2499,6 +2517,17 @@ snapshots:
       '@ledgerhq/hw-transport': 6.31.11
       fast-sha256: 1.3.0
 
+  '@mysten/seal@0.8.0(typescript@5.9.2)':
+    dependencies:
+      '@mysten/bcs': 1.8.0
+      '@mysten/sui': 1.38.0(typescript@5.9.2)
+      '@noble/curves': 1.9.7
+      '@noble/hashes': 1.8.0
+    transitivePeerDependencies:
+      - '@gql.tada/svelte-support'
+      - '@gql.tada/vue-support'
+      - typescript
+
   '@mysten/signers@0.5.0(typescript@5.9.2)':
     dependencies:
       '@google-cloud/kms': 4.5.0
@@ -2554,6 +2583,20 @@ snapshots:
     dependencies:
       '@mysten/sui': 1.38.0(typescript@5.9.2)
       '@wallet-standard/core': 1.1.1
+    transitivePeerDependencies:
+      - '@gql.tada/svelte-support'
+      - '@gql.tada/vue-support'
+      - typescript
+
+  '@mysten/walrus-wasm@0.1.1': {}
+
+  '@mysten/walrus@0.7.0(typescript@5.9.2)':
+    dependencies:
+      '@mysten/bcs': 1.8.0
+      '@mysten/sui': 1.38.0(typescript@5.9.2)
+      '@mysten/utils': 0.2.0
+      '@mysten/walrus-wasm': 0.1.1
+      dataloader: 2.2.3
     transitivePeerDependencies:
       - '@gql.tada/svelte-support'
       - '@gql.tada/vue-support'
@@ -3373,6 +3416,8 @@ snapshots:
   cssesc@3.0.0: {}
 
   csstype@3.1.3: {}
+
+  dataloader@2.2.3: {}
 
   debug@4.4.3:
     dependencies:
