@@ -1,9 +1,9 @@
 "use client";
 import { useState } from "react";
+import BackgroundVideo from "../components/BackgroundVideo";
 
 export default function HostPage() {
   const [title, setTitle] = useState("");
-  const [image, setImage] = useState(null);
   const [coins, setCoins] = useState("");
   const [maxPeople, setMaxPeople] = useState("");
   const [showNotification, setShowNotification] = useState(false);
@@ -16,17 +16,16 @@ export default function HostPage() {
     setTimeout(() => setShowNotification(false), 2000);
   };
 
-  const handleImageChange = (e) => {
-    if (e.target.files && e.target.files[0]) {
-      setImage(URL.createObjectURL(e.target.files[0]));
-    }
-  };
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-20 relative">
-      <h1 className="text-3xl md:text-4xl font-bold mb-6">Host a Sensor</h1>
+    <div className="relative min-h-screen text-slate-100">
+      {/* Background Video */}
+      <BackgroundVideo />
+      
+      <main className="mx-auto max-w-6xl px-4 py-20 relative">
+        <h1 className="text-3xl md:text-4xl font-bold mb-6">Host a Sensor</h1>
 
-      <div className="bg-gray-800 p-6 rounded-lg space-y-4">
+      <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm space-y-4">
         {/* Title */}
         <div>
           <label className="block text-sm mb-1">Title:</label>
@@ -34,28 +33,11 @@ export default function HostPage() {
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full p-2 rounded bg-gray-700 border border-gray-600"
+            className="w-full p-2 rounded bg-white/5 border border-white/10 text-white placeholder-gray-400"
             placeholder="Enter title"
           />
         </div>
 
-        {/* Image */}
-        <div>
-          <label className="block text-sm mb-1">Image:</label>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleImageChange}
-            className="block w-full text-sm text-gray-300"
-          />
-          {image && (
-            <img
-              src={image}
-              alt="Preview"
-              className="mt-2 max-h-40 object-contain border border-gray-600 rounded"
-            />
-          )}
-        </div>
 
         {/* Coins and Max People */}
         <div className="flex space-x-4">
@@ -66,7 +48,7 @@ export default function HostPage() {
               value={coins}
               onChange={(e) => setCoins(Math.max(0, Number(e.target.value)))}
               min={0}
-              className="w-full p-2 rounded bg-gray-700 border border-gray-600"
+              className="w-full p-2 rounded bg-white/5 border border-white/10 text-white placeholder-gray-400"
               placeholder="0"
             />
           </div>
@@ -80,7 +62,7 @@ export default function HostPage() {
                 setMaxPeople(Math.max(0, Number(e.target.value)))
               }
               min={0}
-              className="w-full p-2 rounded bg-gray-700 border border-gray-600"
+              className="w-full p-2 rounded bg-white/5 border border-white/10 text-white placeholder-gray-400"
               placeholder="0"
             />
           </div>
@@ -114,6 +96,7 @@ export default function HostPage() {
           animation: fade-in-out 2s ease-in-out forwards;
         }
       `}</style>
-    </main>
+      </main>
+    </div>
   );
 }

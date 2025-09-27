@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 import BackgroundVideo from "../components/BackgroundVideo";
 
@@ -8,134 +6,104 @@ export default function History() {
     <div className="relative min-h-screen text-slate-100">
       {/* Background Video */}
       <BackgroundVideo />
-      
+
       {/* CONTENT */}
       <div className="mx-auto max-w-4xl px-6 pt-12 md:pt-16 pb-24 space-y-10">
-        {/* Navigation */}
-        <div className="flex items-center gap-4 mb-8">
-          <Link 
-            href="/" 
-            className="text-white hover:text-gray-300 transition underline decoration-white underline-offset-4"
+        {/* Back */}
+        <div className="flex items-center gap-4 mb-6">
+          <Link
+            href="/"
+            className="underline decoration-white underline-offset-4 hover:text-slate-300 transition"
           >
             ← Back to home
           </Link>
         </div>
 
         {/* Headline */}
-        <h1 className="text-4xl md:text-6xl lg:text-6xl font-extrabold leading-[1.15]">
+        <h1 className="text-4xl md:text-6xl font-extrabold leading-[1.15]">
           <span role="img" aria-label="water crisis">💧</span>{" "}
-          "Water that kills: a silent global crisis"
+          Water that kills: a silent global crisis
         </h1>
 
-        {/* Introduction */}
-        <div className="rounded-2xl border border-white/30 bg-white/10 p-6 backdrop-blur-sm">
-          <p className="text-xl md:text-2xl text-white font-semibold">
+        {/* One-liner */}
+        <div className="rounded-2xl border border-white/20 bg-white/10 p-6 backdrop-blur-sm">
+          <p className="text-xl md:text-2xl font-semibold">
             Every year, unsafe water kills more people than all wars combined.
           </p>
         </div>
 
-        {/* Statistics */}
-        <section className="space-y-6">
-          <h2 className="text-3xl md:text-4xl font-bold text-white">Shocking numbers</h2>
-          
-          <div className="grid md:grid-cols-2 gap-6">
-            {/* Card 1 */}
-            <div className="rounded-2xl border border-white/30 bg-white/10 p-6 backdrop-blur-sm">
-              <div className="text-4xl font-bold text-white mb-2">3.4 million</div>
-              <p className="text-slate-200">People die each year from unsafe water</p>
+        {/* Key numbers (short and punchy) */}
+        <section className="space-y-4">
+          <h2 className="text-2xl md:text-3xl font-bold">Key numbers</h2>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="rounded-2xl border border-white/15 bg-white/5 p-5">
+              <div className="text-3xl md:text-4xl font-bold mb-1">3.4M</div>
+              <p className="text-slate-200/90">Deaths from unsafe water each year</p>
             </div>
-
-            {/* Card 2 */}
-            <div className="rounded-2xl border border-white/30 bg-white/10 p-6 backdrop-blur-sm">
-              <div className="text-4xl font-bold text-white mb-2">2.2 million</div>
-              <p className="text-slate-200">Deaths caused by diarrheal diseases from contaminated water</p>
+            <div className="rounded-2xl border border-white/15 bg-white/5 p-5">
+              <div className="text-3xl md:text-4xl font-bold mb-1">2.2M</div>
+              <p className="text-slate-200/90">Diarrheal disease deaths (water-related)</p>
             </div>
-
-            {/* Card 3 */}
-            <div className="rounded-2xl border border-white/30 bg-white/10 p-6 backdrop-blur-sm">
-              <div className="text-4xl font-bold text-white mb-2">1.8 million</div>
-              <p className="text-slate-200">Children under 5 die each year from diarrhea</p>
+            <div className="rounded-2xl border border-white/15 bg-white/5 p-5">
+              <div className="text-3xl md:text-4xl font-bold mb-1">1.8M</div>
+              <p className="text-slate-200/90">Children under 5 lost to diarrhea</p>
             </div>
-
-            {/* Card 4 */}
-            <div className="rounded-2xl border border-white/30 bg-white/10 p-6 backdrop-blur-sm">
-              <div className="text-4xl font-bold text-white mb-2">785 million</div>
-              <p className="text-slate-200">People lack access to basic drinking water</p>
+            <div className="rounded-2xl border border-white/15 bg-white/5 p-5">
+              <div className="text-3xl md:text-4xl font-bold mb-1">785M</div>
+              <p className="text-slate-200/90">People without basic drinking water</p>
             </div>
           </div>
         </section>
 
-        {/* Diseases Section */}
-        <section className="space-y-6">
-          <h2 className="text-3xl md:text-4xl font-bold text-white">Water-borne diseases</h2>
-          
-          <div className="space-y-4">
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
-              <h3 className="text-xl font-bold text-white mb-3">💧 Cholera</h3>
-              <p className="text-slate-200/90">
-                An acute diarrheal disease that can kill within hours if left untreated. 
-                Caused by ingestion of water or food contaminated with Vibrio cholerae bacteria.
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
-              <h3 className="text-xl font-bold text-white mb-3">🦠 Typhoid</h3>
-              <p className="text-slate-200/90">
-                Bacterial infection transmitted through water contaminated with feces. 
-                Causes fever, headaches and severe digestive disorders.
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
-              <h3 className="text-xl font-bold text-white mb-3">🐛 Schistosomiasis</h3>
-              <p className="text-slate-200/90">
-                Parasitic disease transmitted through contact with contaminated fresh water. 
-                Affects more than 200 million people worldwide.
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
-              <h3 className="text-xl font-bold text-white mb-3">🦠 Hepatitis A</h3>
-              <p className="text-slate-200/90">
-                Liver disease caused by a virus transmitted primarily through contaminated water and food. 
-                Can cause fatal liver failure.
-              </p>
-            </div>
-          </div>
+        {/* Water-borne diseases (concise) */}
+        <section className="space-y-4">
+          <h2 className="text-2xl md:text-3xl font-bold">Water-borne diseases</h2>
+          <ul className="grid gap-3 sm:grid-cols-2">
+            <li className="rounded-2xl border border-white/10 bg-white/5 p-5">
+              <h3 className="text-lg font-bold mb-1">Cholera</h3>
+              <p className="text-slate-200/90">Acute diarrhea; can be fatal within hours without treatment.</p>
+            </li>
+            <li className="rounded-2xl border border-white/10 bg-white/5 p-5">
+              <h3 className="text-lg font-bold mb-1">Typhoid</h3>
+              <p className="text-slate-200/90">Bacterial infection from fecally contaminated water.</p>
+            </li>
+            <li className="rounded-2xl border border-white/10 bg-white/5 p-5">
+              <h3 className="text-lg font-bold mb-1">Schistosomiasis</h3>
+              <p className="text-slate-200/90">Parasitic disease from contact with contaminated freshwater.</p>
+            </li>
+            <li className="rounded-2xl border border-white/10 bg-white/5 p-5">
+              <h3 className="text-lg font-bold mb-1">Hepatitis A</h3>
+              <p className="text-slate-200/90">Viral liver disease; often spread via unsafe water/food.</p>
+            </li>
+          </ul>
         </section>
 
-        {/* Global Impact */}
-        <section className="space-y-6">
-          <h2 className="text-3xl md:text-4xl font-bold text-white">Global impact</h2>
-          
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
-            <ul className="space-y-3 text-slate-200/90">
-              <li>• <span className="font-semibold text-white">Sub-Saharan Africa:</span> 40% of the population lacks access to safe water</li>
-              <li>• <span className="font-semibold text-white">South Asia:</span> More than 600 million people live without basic sanitation</li>
-              <li>• <span className="font-semibold text-white">Latin America:</span> 100 million people lack access to safe water</li>
-              <li>• <span className="font-semibold text-white">Climate crisis:</span> Aggravates water problems worldwide</li>
-            </ul>
-          </div>
+        {/* Global impact (no heavy detail) */}
+        <section className="space-y-4">
+          <h2 className="text-2xl md:text-3xl font-bold">Global impact</h2>
+          <ul className="space-y-2 text-slate-200/90">
+            <li>• Sub-Saharan Africa, South Asia, and parts of Latin America face the highest burden.</li>
+            <li>• Climate change intensifies water stress and contamination risks worldwide.</li>
+          </ul>
         </section>
 
-        {/* Call to Action */}
-        <section className="space-y-6">
-          <div className="rounded-2xl border border-white/30 bg-white/10 p-6 backdrop-blur-sm">
-            <h2 className="text-2xl font-bold text-white mb-4">💡 Our mission</h2>
+        {/* CTA */}
+        <section>
+          <div className="rounded-2xl border border-sky-500/30 bg-sky-500/10 p-6 backdrop-blur-sm">
+            <h2 className="text-xl md:text-2xl font-bold text-sky-300 mb-3">Our mission</h2>
             <p className="text-slate-200/90 mb-4">
-              Facing this silent crisis, our decentralized water quality monitoring technology 
-              offers an innovative solution to protect communities and save lives.
+              We’re building a decentralized, open network to monitor water quality and protect communities.
             </p>
             <div className="flex flex-wrap items-center gap-3">
               <Link
                 href="/data"
-                className="rounded-full px-5 py-3 bg-white text-black font-medium hover:bg-gray-200 transition"
+                className="rounded-full px-5 py-3 bg-sky-400 text-slate-900 font-semibold hover:bg-sky-300 transition"
               >
                 See our solution
               </Link>
               <Link
                 href="/"
-                className="rounded-full px-5 py-3 border border-white/40 text-white hover:bg-white/5 transition"
+                className="rounded-full px-5 py-3 border border-sky-300/40 text-slate-100 hover:bg-white/5 transition"
               >
                 Back to home
               </Link>

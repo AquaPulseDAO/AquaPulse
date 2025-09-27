@@ -51,21 +51,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Optional CTA buttons */}
-        <div className="flex flex-wrap items-center gap-3 pt-2">
-          <Link
-            href="/data"
-            className="rounded-full px-5 py-3 bg-sky-400 text-slate-900 font-medium hover:bg-sky-300 transition"
-          >
-            Launch App
-          </Link>
-          <Link
-            href="/rewards"
-            className="rounded-full px-5 py-3 border border-sky-300/40 text-slate-100 hover:bg-white/5 transition"
-          >
-            Explore Challenges
-          </Link>
-        </div>
       </div>
     </div>
   );
