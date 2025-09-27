@@ -42,7 +42,7 @@ export default function Home() {
             <li>• <span className="font-semibold">Participatory science:</span> engaging local communities in data collection and education</li>
           </ul>
 
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4 md:p-5 backdrop-blur-sm">
+          <div className="rounded-2xl border border-white/10 bg-white/20 p-4 md:p-5 backdrop-blur-sm">
             <p className="text-sky-300 text-base md:text-lg">
               “We are launching the first challenges soon. Follow us to stay updated!”
             </p>

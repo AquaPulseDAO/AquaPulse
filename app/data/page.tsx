@@ -195,7 +195,7 @@ export default function PublishDataPage() {
         </p>
 
         {/* DEVICE CARD */}
-        <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm">
+        <div className="mt-6 rounded-2xl border border-white/10 bg-white/10 p-5 backdrop-blur-sm">
           <h2 className="text-xl font-semibold">Device</h2>
           <p className="text-sm text-slate-300 mt-1">
             Choose a device.
@@ -205,7 +205,7 @@ export default function PublishDataPage() {
             <select
               value={selectedDeviceId}
               onChange={(e) => setSelectedDeviceId(e.target.value)}
-              className="w-full sm:w-80 rounded-xl bg-white/5 border border-white/10 px-3 py-2 outline-none focus:ring-2 focus:ring-sky-400/50"
+              className="w-full sm:w-80 rounded-xl bg-white/10 border border-white/10 px-3 py-2 outline-none focus:ring-2 focus:ring-sky-400/50"
             >
               {devices.length === 0 && <option value="">No device yet</option>}
               {devices.map((d) => (
@@ -218,7 +218,7 @@ export default function PublishDataPage() {
             <button
               type="button"
               onClick={() => selectedDeviceId && removeDevice(selectedDeviceId)}
-              className="rounded-xl px-4 py-2 border border-white/15 hover:bg-white/5 transition disabled:opacity-40"
+              className="rounded-xl px-4 py-2 border border-white/15 hover:bg-white/10 transition disabled:opacity-40"
               disabled={!selectedDeviceId}
               title="Remove selected device"
             >
@@ -231,13 +231,13 @@ export default function PublishDataPage() {
               value={newDevName}
               onChange={(e) => setNewDevName(e.target.value)}
               placeholder="Device name (e.g., River Edge #2)"
-              className="rounded-xl bg-white/5 border border-white/10 px-3 py-2 outline-none focus:ring-2 focus:ring-sky-400/50"
+              className="rounded-xl bg-white/10 border border-white/10 px-3 py-2 outline-none focus:ring-2 focus:ring-sky-400/50"
             />
             <input
               value={newDevId}
               onChange={(e) => setNewDevId(e.target.value)}
               placeholder="Device ID (e.g., dev-002 or on-chain object ID)"
-              className="rounded-xl bg-white/5 border border-white/10 px-3 py-2 outline-none focus:ring-2 focus:ring-sky-400/50"
+              className="rounded-xl bg-white/10 border border-white/10 px-3 py-2 outline-none focus:ring-2 focus:ring-sky-400/50"
             />
             <button
               type="button"
@@ -251,7 +251,7 @@ export default function PublishDataPage() {
 
         <form
           onSubmit={onSubmit}
-          className="relative mt-8 rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm shadow-lg"
+          className="relative mt-8 rounded-2xl border border-white/10 bg-white/10 p-6 backdrop-blur-sm shadow-lg"
         >
           {/* Toasts */}
           {ok && (
@@ -305,7 +305,7 @@ export default function PublishDataPage() {
               <button
                 type="button"
                 onClick={clearCSV}
-                className="rounded-xl px-4 py-2 border border-white/15 hover:bg-white/5 transition"
+                className="rounded-xl px-4 py-2 border border-white/15 hover:bg-white/10 transition"
                 disabled={!csvFile}
                 title="Clear selected file"
               >
