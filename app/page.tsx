@@ -1,44 +1,57 @@
 "use client";
 
 import Link from "next/link";
+import BackgroundVideo from "./components/BackgroundVideo";
 
 export default function Home() {
   return (
     <div className="relative min-h-screen text-slate-100">
-      {/* BACKGROUND VIDEO */}
-      <div className="absolute inset-0 -z-10 overflow-hidden">
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: "url(/media/waves.jpg)" }}
-          aria-hidden="true"
-        />
-        <video
-          className="w-full h-full object-cover opacity-65"
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="metadata"
-          poster="/media/waves.jpg"
-        >
-          {/* garde mp4 seul si tu veux */}
-          <source src="/media/waves.webm" type="video/webm" />
-          <source src="/media/waves.mp4"  type="video/mp4" />
-        </video>
-        <div className="absolute inset-0 bg-gradient-to-b from-[#07182b]/40 via-[#07182b]/45 to-[#07182b]/70" />
-      </div>
-
+      {/* Background Video */}
+      <BackgroundVideo />
+      
       {/* CONTENT */}
-      <div className="mx-auto max-w-4xl px-6 py-24 md:py-32 space-y-8">
-        <h1 className="text-4xl md:text-6xl font-extrabold leading-tight">
-          Monitor water quality, <span className="text-sky-400">together.</span>
+      <div className="mx-auto max-w-4xl px-6 pt-12 md:pt-16 pb-24 space-y-10">
+        {/* Headline */}
+        <h1 className="text-4xl md:text-6xl lg:text-6xl font-extrabold leading-[1.15]">
+          <span role="img" aria-label="droplet">💧</span>{" "}
+          “A decentralized network for water quality monitoring”
         </h1>
 
-        <p className="text-lg md:text-xl text-slate-200/90">
-          An open, low-cost sensor network for rivers—deploy, collect, and share trusted data.
+        {/* Subhead */}
+        <p className="text-xl md:text-2xl text-slate-200/90">
+          “Combining data, the Sui protocol, and sustainability to protect our water resources.”
         </p>
 
-        {/* CTAs (plus de bouton Connect ici) */}
+        {/* Get started (links only) */}
+        <p className="text-base md:text-lg text-slate-200/90">
+          <span className="font-semibold">Get started:</span>{" "}
+          <Link href="/history" className="underline decoration-sky-400 underline-offset-4 hover:text-white">
+            History
+          </Link>{" "}
+          ·{" "}
+          <Link href="/rewards" className="underline decoration-sky-400 underline-offset-4 hover:text-white">
+            Explore Challenges
+          </Link>{" "}
+        </p>
+
+        {/* Our Solution */}
+        <section className="pt-6 space-y-6">
+          <h2 className="text-3xl md:text-4xl font-bold">Our Solution</h2>
+          <ul className="space-y-3 text-slate-200/90">
+            <li>• An open-source, ultra low-cost device, combined with a decentralized network.</li>
+            <li>• <span className="font-semibold">🌐 Solar-powered device</span></li>
+            <li>• <span className="font-semibold">🕹️ Gamification:</span> challenges, NFT badges, XP scoring</li>
+            <li>• <span className="font-semibold">🤝 Participatory science:</span> engaging local communities in data collection and education</li>
+          </ul>
+
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4 md:p-5 backdrop-blur-sm">
+            <p className="text-sky-300 text-base md:text-lg">
+              👉 “We are launching the first challenges soon. Follow us to stay updated!”
+            </p>
+          </div>
+        </section>
+
+        {/* Optional CTA buttons */}
         <div className="flex flex-wrap items-center gap-3 pt-2">
           <Link
             href="/data"
@@ -53,15 +66,6 @@ export default function Home() {
             Explore Challenges
           </Link>
         </div>
-
-        <section className="pt-10">
-          <h2 className="text-2xl md:text-3xl font-bold">Why it matters</h2>
-          <ul className="mt-4 space-y-3 text-slate-200/90">
-            <li>• Open-source hardware, easy to install</li>
-            <li>• Real-time, auditable data</li>
-            <li>• Rewards for meaningful contributions</li>
-          </ul>
-        </section>
       </div>
     </div>
   );
