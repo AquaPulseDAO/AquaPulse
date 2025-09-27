@@ -73,3 +73,11 @@
   --rp-navy-1: #07182b;   /* navy très sombre */
   --rp-navy-2: #0c2442;   /* navy */
 }
+/* Fade-in doux pour le fond vidéo */
+@keyframes rpFadeIn { from { opacity: 0 } to { opacity: 1 } }
+.rp-fade-in { animation: rpFadeIn 900ms ease-out both; }
+
+/* Respecte les préférences d’accessibilité */
+@media (prefers-reduced-motion: reduce) {
+  .rp-motion-reduce-hide { display: none !important; }
+}
