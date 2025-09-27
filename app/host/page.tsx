@@ -1,16 +1,62 @@
 "use client";
 import { useState } from "react";
 import BackgroundVideo from "../components/BackgroundVideo";
+import { getFullnodeUrl, SuiClient } from "@mysten/sui/client";
+import { useCurrentWallet, useSignAndExecuteTransaction } from "@mysten/dapp-kit";
+import { Transaction } from "@mysten/sui/transactions";
 
 export default function HostPage() {
+
   const [title, setTitle] = useState("");
   const [coins, setCoins] = useState("");
   const [maxPeople, setMaxPeople] = useState("");
   const [showNotification, setShowNotification] = useState(false);
+  const client = new SuiClient({ url: getFullnodeUrl('testnet') });
+  const { mutate: signAndExecuteTransaction } = useSignAndExecuteTransaction();
+  const { currentWallet, connectionStatus } = useCurrentWallet();
+  const [digest, setDigest] = useState("");
+  const handleStart = async() => {
+    if (currentWallet){
+   
+      
+      const tx = new Transaction();
+      console.log(tx);
+      const [coin] = tx.splitCoins(tx.gas, [Number(coins)]);
+      console.log(coin)
+      const packageId = '0x3f00d30514f3a610ec8f9297b63325b439fc293199e9b0eb63847d08fc4eca50';
+      tx.moveCall({ 
+          arguments: [tx.pure.u64(coins), coin, tx.pure.u32(Number(maxPeople))],
+          target: `${packageId}::CleanWater::create_vault`
+        });
 
-  const handleStart = () => {
-    setShowNotification(true);
-    setTimeout(() => setShowNotification(false), 2000);
+        // const suiClinet = new SuiClient({url: getFullnodeUrl("testnet")});
+        // tx.setSender("0x18959ea37ee943aae83b0a40662d3b94cb4b78070be8c9275178da0966094553");
+        // const respone = await tx.build({
+        //   client: suiClinet
+        // });
+        // console.log({respone});
+
+        // return;
+
+
+        // console.log(tx);
+        await signAndExecuteTransaction(
+          {
+            transaction: tx,
+            chain: 'sui:testnet',
+          },
+          {
+            onSuccess: (result) => {
+              console.log('executed transaction', result);
+              setDigest(result.digest);
+            },
+            onError: (err) => {
+              console.log(err)
+            }
+          },
+        );
+    }
+
   };
 
   return (
