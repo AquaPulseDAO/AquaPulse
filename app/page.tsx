@@ -22,14 +22,15 @@ export default function Home() {
           “Combining data, the Sui protocol, and sustainability to protect our water resources.”
         </p>
 
-        {/* Get started (links only) */}
-        <p className="text-base md:text-lg text-slate-200/90">
-          <span className="font-semibold">Get started:</span>{" "}
-          <Link href="/history" className="underline decoration-sky-400 underline-offset-4 hover:text-white">
-            History
-          </Link>{" "}
-          
-        </p>
+        {/* Get started (big button) */}
+        <div className="mt-6">
+          <Link
+            href="/history"
+            className="inline-block bg-sky-400 hover:bg-sky-300 text-slate-900 font-bold text-lg md:text-xl px-8 py-4 rounded-2xl shadow-lg transition"
+          >
+            The problem we solve
+          </Link>
+        </div>
 
         {/* Our Solution */}
         <section className="pt-6 space-y-6">
