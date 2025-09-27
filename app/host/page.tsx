@@ -66,7 +66,7 @@ export default function HostPage() {
 
       <main className="relative z-10 mx-auto max-w-6xl px-4 py-20 space-y-12">
         <h1 className="text-3xl md:text-4xl font-bold text-center mb-6 drop-shadow-lg">
-          Host a Sensor
+          Host a Vault
         </h1>
 
         <div className="rounded-2xl border border-white/10 bg-white/20 backdrop-blur-sm p-6 space-y-6 shadow-lg">
