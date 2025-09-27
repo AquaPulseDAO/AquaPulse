@@ -10,92 +10,84 @@ export default function HostPage() {
 
   const handleStart = () => {
     setShowNotification(true);
-    // Ici tu peux ajouter la logique pour envoyer les données à ton backend
-
-    // Masquer la notification après 2 secondes
     setTimeout(() => setShowNotification(false), 2000);
   };
-
 
   return (
     <div className="relative min-h-screen text-slate-100">
       {/* Background Video */}
       <BackgroundVideo />
-      
-      <main className="mx-auto max-w-6xl px-4 py-20 relative">
-        <h1 className="text-3xl md:text-4xl font-bold mb-6">Host a Sensor</h1>
 
-      <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm space-y-4">
-        {/* Title */}
-        <div>
-          <label className="block text-sm mb-1">Title:</label>
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="w-full p-2 rounded bg-white/5 border border-white/10 text-white placeholder-gray-400"
-            placeholder="Enter title"
-          />
-        </div>
+      <main className="relative z-10 mx-auto max-w-6xl px-4 py-20 space-y-12">
+        <h1 className="text-3xl md:text-4xl font-bold text-center mb-6 drop-shadow-lg">
+          Host a Sensor
+        </h1>
 
-
-        {/* Coins and Max People */}
-        <div className="flex space-x-4">
-          <div className="flex-1">
-            <label className="block text-sm mb-1">Coins to invest:</label>
+        <div className="rounded-2xl border border-white/10 bg-white/20 backdrop-blur-sm p-6 space-y-6 shadow-lg">
+          {/* Title */}
+          <div>
+            <label className="block text-sm font-semibold mb-1">Title</label>
             <input
-              type="number"
-              value={coins}
-              onChange={(e) => setCoins(Math.max(0, Number(e.target.value)))}
-              min={0}
-              className="w-full p-2 rounded bg-white/5 border border-white/10 text-white placeholder-gray-400"
-              placeholder="0"
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Enter title"
+              className="w-full rounded-xl border border-white/10 bg-white/10 p-3 text-white placeholder-gray-300 outline-none focus:ring-2 focus:ring-sky-400/50"
             />
           </div>
 
-          <div className="flex-1">
-            <label className="block text-sm mb-1">Max people:</label>
-            <input
-              type="number"
-              value={maxPeople}
-              onChange={(e) =>
-                setMaxPeople(Math.max(0, Number(e.target.value)))
-              }
-              min={0}
-              className="w-full p-2 rounded bg-white/5 border border-white/10 text-white placeholder-gray-400"
-              placeholder="0"
-            />
+          {/* Coins & Max People */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-semibold mb-1">Coins to invest</label>
+              <input
+                type="number"
+                value={coins}
+                onChange={(e) => setCoins(Math.max(0, Number(e.target.value)))}
+                placeholder="0"
+                className="w-full rounded-xl border border-white/10 bg-white/10 p-3 text-white placeholder-gray-300 outline-none focus:ring-2 focus:ring-sky-400/50"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold mb-1">Max people</label>
+              <input
+                type="number"
+                value={maxPeople}
+                onChange={(e) => setMaxPeople(Math.max(0, Number(e.target.value)))}
+                placeholder="0"
+                className="w-full rounded-xl border border-white/10 bg-white/10 p-3 text-white placeholder-gray-300 outline-none focus:ring-2 focus:ring-sky-400/50"
+              />
+            </div>
           </div>
+
+          {/* Start Button */}
+          <button
+            onClick={handleStart}
+            className="w-full bg-sky-400 hover:bg-sky-300 text-slate-900 font-semibold py-3 rounded-xl transition shadow-md"
+          >
+            Start!!
+          </button>
         </div>
 
-        {/* Start Button */}
-        <button
-          onClick={handleStart}
-          className="mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-        >
-          Start!!
-        </button>
-      </div>
-
-      {/* Notification */}
-      {showNotification && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
-          <div className="bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg pointer-events-auto animate-fade-in-out">
-            Upload successful!
+        {/* Notification */}
+        {showNotification && (
+          <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
+            <div className="bg-emerald-400 text-slate-900 px-6 py-3 rounded-lg shadow-lg pointer-events-auto animate-fade-in-out">
+              Upload successful!
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Animation Tailwind */}
-      <style jsx>{`
-        @keyframes fade-in-out {
-          0%, 100% { opacity: 0; transform: translateY(-10px); }
-          10%, 90% { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fade-in-out {
-          animation: fade-in-out 2s ease-in-out forwards;
-        }
-      `}</style>
+        {/* Animation */}
+        <style jsx>{`
+          @keyframes fade-in-out {
+            0%, 100% { opacity: 0; transform: translateY(-10px); }
+            10%, 90% { opacity: 1; transform: translateY(0); }
+          }
+          .animate-fade-in-out {
+            animation: fade-in-out 2s ease-in-out forwards;
+          }
+        `}</style>
       </main>
     </div>
   );
