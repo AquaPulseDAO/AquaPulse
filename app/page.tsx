@@ -28,10 +28,7 @@ export default function Home() {
           <Link href="/history" className="underline decoration-sky-400 underline-offset-4 hover:text-white">
             History
           </Link>{" "}
-          ·{" "}
-          <Link href="/rewards" className="underline decoration-sky-400 underline-offset-4 hover:text-white">
-            Explore Challenges
-          </Link>{" "}
+          
         </p>
 
         {/* Our Solution */}
