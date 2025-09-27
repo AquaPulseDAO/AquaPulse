@@ -162,7 +162,7 @@ export default function DataPage() {
         </h1>
 
         {/* Devices */}
-        <section className="mt-6 rounded-2xl border border-white/10 bg-white/10 p-5">
+        <section className="mt-6 rounded-2xl border border-white/10 bg-white/30 p-5">
           <h2 className="text-lg font-semibold">Devices</h2>
           <p className="text-sm text-white/70">
             Each device stores a default <b>vault name</b> used when CSV rows
@@ -222,7 +222,7 @@ export default function DataPage() {
         </section>
 
         {/* CSV */}
-        <section className="mt-6 rounded-2xl border border-white/10 bg-white/10 p-5">
+        <section className="mt-6 rounded-2xl border border-white/10 bg-white/30 p-5">
           <h2 className="text-lg font-semibold">CSV (demo)</h2>
           <p className="text-sm text-white/70">
             Required: <code>title,lat,lon</code>. Optional:{" "}
@@ -242,7 +242,6 @@ export default function DataPage() {
           </div>
 
           <div className="mt-3 flex flex-wrap items-center gap-3">
-            {/* Suppression du bouton input type=file */}
             <button
               type="button"
               onClick={downloadDemoCSV}
