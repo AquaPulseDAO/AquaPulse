@@ -19,7 +19,8 @@ export default function Device() {
       {/* Vidéo de fond uniquement pour /device */}
       <BackgroundVideo />
 
-      <main className="relative z-0 mx-auto max-w-6xl px-4 py-20 space-y-24 text-slate-100">
+      <main className="relative z-10 mx-auto max-w-6xl px-4 py-20 space-y-24 text-slate-100">
+
         {/* Hero */}
         <section className="text-center">
           <h1 className="text-4xl md:text-5xl font-bold">
@@ -39,11 +40,11 @@ export default function Device() {
             {features.map((f, idx) => (
               <div
                 key={idx}
-                className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-6 shadow-lg transition hover:bg-white/10"
+                className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-6 shadow-lg transition hover:bg-white/10 flex flex-col items-center text-center"
               >
-                <div className="text-4xl text-center">{f.icon}</div>
-                <h3 className="mt-4 font-bold text-lg text-center">{f.title}</h3>
-                <p className="mt-2 text-slate-200/90 text-center">{f.description}</p>
+                <div className="text-4xl">{f.icon}</div>
+                <h3 className="mt-4 font-bold text-lg">{f.title}</h3>
+                <p className="mt-2 text-slate-200/90">{f.description}</p>
               </div>
             ))}
           </div>
@@ -79,7 +80,7 @@ export default function Device() {
             {impact.map((i, idx) => (
               <div
                 key={idx}
-                className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-6 shadow-lg text-center"
+                className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-6 shadow-lg text-center flex flex-col items-center"
               >
                 <div className="text-4xl">{i.icon}</div>
                 <h3 className="mt-4 font-bold text-lg">{i.title}</h3>
@@ -100,6 +101,7 @@ export default function Device() {
             Or join as a contributor to help improve water quality monitoring 💧🌱
           </p>
         </section>
+
       </main>
     </div>
   );
