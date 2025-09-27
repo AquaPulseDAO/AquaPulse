@@ -3,11 +3,11 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { ConnectButton } from "@mysten/dapp-kit";
-import { Droplets, ArrowRight, Cpu, Gift, Database, Shield } from "lucide-react";
+import { ArrowRight, Cpu, Gift, Database, Shield } from "lucide-react";
 
 export default function Home() {
   return (
+<<<<<<< HEAD
     <div className="min-h-screen bg-gradient-to-b from-[#07182b] via-[#0c2442] to-[#07182b] text-slate-100 relative">
       {/* Top Nav */}
       <header className="sticky top-0 z-40 backdrop-blur supports-[backdrop-filter]:bg-[rgba(8,22,43,0.72)] border-b border-slate-800">
@@ -28,6 +28,9 @@ export default function Home() {
           </div>
         </div>
       </header>
+=======
+    <div className="min-h-screen bg-gradient-to-b from-[var(--rp-navy-1)] via-[var(--rp-navy-2)] to-[var(--rp-navy-1)] text-slate-100 relative">
+>>>>>>> f03650e6d4b503adc8e731ae82142b098d4ca658
 
       {/* HERO avec vidéo de fond */}
       <main className="relative">

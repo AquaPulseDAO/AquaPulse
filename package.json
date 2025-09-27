@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@mysten/dapp-kit": "0.18.0",
+    "@mysten/enoki": "^0.12.1",
     "@mysten/sui": "1.38.0",
     "@radix-ui/react-navigation-menu": "^1.2.14",
     "@radix-ui/react-slot": "^1.2.3",
