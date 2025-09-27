@@ -3,8 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { ConnectButton } from "@mysten/dapp-kit";
-import { Droplets, ArrowRight, Cpu, Gift, Database, Shield } from "lucide-react";
+import { ArrowRight, Cpu, Gift, Database, Shield } from "lucide-react";
 
 /** Petite bande de vagues animées en haut/bas */
 function Waves({ flip = false }: { flip?: boolean }) {
@@ -82,26 +81,6 @@ function Waves({ flip = false }: { flip?: boolean }) {
 export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-[var(--rp-navy-1)] via-[var(--rp-navy-2)] to-[var(--rp-navy-1)] text-slate-100 relative">
-      {/* Top Nav sur fond navy + boutons */}
-      <header className="sticky top-0 z-40 backdrop-blur supports-[backdrop-filter]:bg-[rgba(8,22,43,0.72)] border-b border-slate-800">
-        <div className="mx-auto max-w-6xl px-4 py-3 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 font-semibold text-slate-100">
-            <Droplets className="h-6 w-6 text-[var(--rp-blue-1)]" />
-            <span>RiverPulse • Sui</span>
-          </Link>
-
-          <nav className="hidden md:flex items-center gap-6 text-sm">
-            <Link href="/data" className="hover:text-white">Data</Link>
-            <Link href="/access" className="hover:text-white">Access</Link>
-            <Link href="/host" className="hover:text-white">Host</Link>
-          </nav>
-
-          {/* Connect wallet (modal) */}
-          <div className="inline-flex">
-            <ConnectButton connectText="Connect" />
-          </div>
-        </div>
-      </header>
 
       {/* Vagues en haut */}
       <Waves />
