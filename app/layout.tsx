@@ -1,26 +1,13 @@
-import "@mysten/dapp-kit/dist/index.css";
 import "./globals.css";
-import { Providers } from "./providers";
-import Navbar from "./components/Navbar";
+import Providers from "./providers";
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export const metadata = { title: "RiverPulse • Sui" };
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="dark">
-      <head>
-        <meta charSet="UTF-8" />
-        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Sui dApp Starter</title>
-      </head>
-      <body>
-        <Providers>
-          <Navbar />
-          {children}
-        </Providers>
+    <html lang="en" className="h-full">
+      <body className="min-h-screen bg-slate-950 text-slate-100 antialiased">
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

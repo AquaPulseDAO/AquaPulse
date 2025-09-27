@@ -56,3 +56,20 @@
     color: hsl(var(--foreground));
   }
 }
+
+/* --- RiverPulse Waves --- */
+@keyframes waveSlideA {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+@keyframes waveSlideB {
+  0%   { transform: translateX(-10%); }
+  100% { transform: translateX(-60%); }
+}
+/* Accent bleu + fond plus clair */
+:root {
+  --rp-blue-1: #1ea7ff;   /* bleu clair */
+  --rp-blue-2: #7bd3ff;   /* bleu pastel */
+  --rp-navy-1: #07182b;   /* navy très sombre */
+  --rp-navy-2: #0c2442;   /* navy */
+}
