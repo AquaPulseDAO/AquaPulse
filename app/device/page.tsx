@@ -39,7 +39,7 @@ export default function Device() {
             {features.map((f, idx) => (
               <div
                 key={idx}
-                className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-6 shadow-lg transition hover:bg-white/10 flex flex-col items-center text-center"
+                className="rounded-2xl border border-white/10 bg-white/20 backdrop-blur-sm p-6 shadow-lg transition hover:bg-white/30 flex flex-col items-center text-center"
               >
                 <h3 className="font-bold text-lg">{f.title}</h3>
                 <p className="mt-2 text-slate-200/90">{f.description}</p>
@@ -57,13 +57,13 @@ export default function Device() {
             Data are verified before being sent to the blockchain.
           </p>
           <div className="flex flex-col md:flex-row justify-around items-center gap-6 md:gap-8 text-center">
-            <div className="w-64 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-6 shadow-lg">
+            <div className="w-64 rounded-2xl border border-white/10 bg-white/20 backdrop-blur-sm p-6 shadow-lg">
               <h3 className="font-bold text-xl">Device measures water data</h3>
             </div>
-            <div className="w-64 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-6 shadow-lg">
+            <div className="w-64 rounded-2xl border border-white/10 bg-white/20 backdrop-blur-sm p-6 shadow-lg">
               <h3 className="font-bold text-xl">LoRa → Gateway → Sui blockchain</h3>
             </div>
-            <div className="w-64 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-6 shadow-lg">
+            <div className="w-64 rounded-2xl border border-white/10 bg-white/20 backdrop-blur-sm p-6 shadow-lg">
               <h3 className="font-bold text-xl">Data stored, analyzed and gamified</h3>
             </div>
           </div>
@@ -78,7 +78,7 @@ export default function Device() {
             {impact.map((i, idx) => (
               <div
                 key={idx}
-                className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-6 shadow-lg text-center flex flex-col items-center"
+                className="rounded-2xl border border-white/10 bg-white/20 backdrop-blur-sm p-6 shadow-lg text-center flex flex-col items-center"
               >
                 <h3 className="font-bold text-lg">{i.title}</h3>
                 <p className="mt-2 text-slate-200/90">{i.description}</p>
