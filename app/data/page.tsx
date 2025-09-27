@@ -1,368 +1,256 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import BackgroundVideo from "../components/BackgroundVideo";
-import { useCurrentAccount } from "@mysten/dapp-kit";
 
-type Row = Record<string, string>;
-type Device = { id: string; name: string };
+// Ultra‑minimal demo page to:
+// 1) Add/select a device WITH its default vault name
+// 2) Upload a CSV (demo‑only) that may include a `vault` column
+//    – if not present, we use the selected device's vault name
+// No on‑chain calls here; just parsing + preview + simulated publish.
 
-const LS_KEY = "aquapulse.devices";
-
-export default function PublishDataPage() {
-  const account = useCurrentAccount();
-
-  // --- Devices state ---
-  const [devices, setDevices] = useState<Device[]>([]);
-  const [selectedDeviceId, setSelectedDeviceId] = useState<string>("");
-  const [newDevName, setNewDevName] = useState("");
-  const [newDevId, setNewDevId] = useState("");
-
-  // --- CSV state ---
-  const [csvFile, setCsvFile] = useState<File | null>(null);
-  const [columns, setColumns] = useState<string[]>([]);
-  const [rows, setRows] = useState<Row[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [ok, setOk] = useState<string | null>(null);
-  const inputRef = useRef<HTMLInputElement | null>(null);
-
-  // Load & persist devices (demo)
-  useEffect(() => {
+export default function DataPage() {
+  // Devices are kept in localStorage for convenience
+  const [devices, setDevices] = useState(() => {
+    if (typeof window === "undefined") return [];
     try {
-      const raw = localStorage.getItem(LS_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw) as Device[];
-        setDevices(parsed);
-        if (parsed[0]) setSelectedDeviceId(parsed[0].id);
-      } else {
-        const seed = [{ id: "dev-001", name: "River Edge #1" }];
-        setDevices(seed);
-        setSelectedDeviceId(seed[0].id);
-        localStorage.setItem(LS_KEY, JSON.stringify(seed));
-      }
-    } catch { /* ignore */ }
-  }, []);
+      const raw = localStorage.getItem("aquapulse.devices");
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [selIndex, setSelIndex] = useState(0);
+
+  // New device form
+  const [devId, setDevId] = useState("");
+  const [devName, setDevName] = useState("");
+  const [devVault, setDevVault] = useState("");
+
+  // CSV state
+  const [cols, setCols] = useState([]);
+  const [rows, setRows] = useState([]);
+  const [fileName, setFileName] = useState("");
+  const [csvVault, setCsvVault] = useState("");
+  const inputRef = useRef(null);
 
   useEffect(() => {
     try {
-      localStorage.setItem(LS_KEY, JSON.stringify(devices));
-    } catch { /* ignore */ }
+      localStorage.setItem("aquapulse.devices", JSON.stringify(devices));
+    } catch {}
   }, [devices]);
 
+  const selDevice = useMemo(() => devices[selIndex], [devices, selIndex]);
+
+  // Keep CSV vault default in sync with selected device (only if empty)
+  useEffect(() => {
+    if (!csvVault && selDevice?.vault) setCsvVault(selDevice.vault);
+  }, [selDevice, csvVault]);
+
   function addDevice() {
-    setError(null);
-    if (!newDevName.trim() || !newDevId.trim()) {
-      setError("Please provide both a device name and a device ID.");
+    if (!devId.trim() || !devVault.trim()) {
+      alert("Please fill at least Device ID and Vault name");
       return;
     }
-    if (devices.some((d) => d.id === newDevId.trim())) {
-      setError("This device ID already exists.");
-      return;
-    }
-    const next = [...devices, { id: newDevId.trim(), name: newDevName.trim() }];
+    const next = [...devices, { id: devId.trim(), name: devName.trim() || devId.trim(), vault: devVault.trim() }];
     setDevices(next);
-    setSelectedDeviceId(newDevId.trim());
-    setNewDevId("");
-    setNewDevName("");
+    setSelIndex(next.length - 1);
+    setDevId("");
+    setDevName("");
+    setDevVault("");
   }
 
-  function removeDevice(id: string) {
-    const next = devices.filter((d) => d.id !== id);
+  function removeSelected() {
+    if (devices.length === 0) return;
+    const next = devices.slice();
+    next.splice(selIndex, 1);
     setDevices(next);
-    if (selectedDeviceId === id) setSelectedDeviceId(next[0]?.id ?? "");
+    setSelIndex(0);
   }
 
-  // --- CSV parsing (with quotes support) ---
-  function splitCSVLine(line: string): string[] {
-    const out: string[] = [];
+  // --- Minimal CSV parser (supports quotes and commas in quotes) ---
+  function splitCSVLine(line) {
+    const out = [];
     let cur = "";
-    let inQuotes = false;
-
+    let inQ = false;
     for (let i = 0; i < line.length; i++) {
       const ch = line[i];
       if (ch === '"') {
-        if (inQuotes && line[i + 1] === '"') { cur += '"'; i++; }
-        else { inQuotes = !inQuotes; }
-      } else if (ch === "," && !inQuotes) {
+        if (inQ && line[i + 1] === '"') { cur += '"'; i++; } else { inQ = !inQ; }
+      } else if (ch === "," && !inQ) {
         out.push(cur); cur = "";
-      } else {
-        cur += ch;
-      }
+      } else { cur += ch; }
     }
     out.push(cur);
     return out.map((s) => s.trim());
   }
 
-  function parseCSV(text: string): { headers: string[]; data: Row[] } {
+  function parseCSV(text) {
     const lines = text.split(/\r?\n/).filter((l) => l.trim().length > 0);
-    if (lines.length === 0) throw new Error("Empty CSV.");
+    if (!lines.length) return;
     const headers = splitCSVLine(lines[0]).map((h) => h.toLowerCase());
-    const data: Row[] = [];
+    const data = [];
     for (let i = 1; i < lines.length; i++) {
       const parts = splitCSVLine(lines[i]);
-      const row: Row = {};
-      headers.forEach((h, idx) => (row[h] = (parts[idx] ?? "").trim()));
-      data.push(row);
+      const obj = {};
+      headers.forEach((h, j) => (obj[h] = (parts[j] ?? "").trim()));
+      data.push(obj);
     }
-    return { headers, data };
+    setCols(headers);
+    setRows(data);
   }
 
-  async function onPickCSV(e: React.ChangeEvent<HTMLInputElement>) {
-    setError(null);
-    const f = e.target.files?.[0] || null;
-    setCsvFile(f);
-    setColumns([]);
-    setRows([]);
-
+  async function onPickCSV(e) {
+    const f = e.target.files?.[0];
     if (!f) return;
-    if (!/\.csv$/i.test(f.name) && !/text\/csv/.test(f.type)) {
-      setError("Please select a .csv file."); return;
-    }
-
-    const text = await f.text();
-    try {
-      const { headers, data } = parseCSV(text);
-      const required = ["title", "lat", "lon"];
-      const missing = required.filter((h) => !headers.includes(h));
-      if (missing.length) {
-        setError(`Missing required columns: ${missing.join(", ")}`); return;
-      }
-      setColumns(headers);
-      setRows(data);
-    } catch (err: any) {
-      setError(err?.message || "Failed to parse CSV.");
-    }
+    setFileName(f.name);
+    parseCSV(await f.text());
   }
 
   function clearCSV() {
-    setCsvFile(null);
-    setColumns([]);
+    setCols([]);
     setRows([]);
-    setError(null);
+    setFileName("");
     if (inputRef.current) inputRef.current.value = "";
   }
 
-  async function onSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!account) return alert("Connect your wallet in the top bar first.");
-    if (rows.length === 0) return setError("Please upload a CSV first.");
-
-    const hasDeviceColumn = columns.includes("device");
-    if (!hasDeviceColumn && !selectedDeviceId) {
-      setError('Select a device or include a "device" column in your CSV.');
-      return;
-    }
-    for (let i = 0; i < rows.length; i++) {
-      const rowDev = hasDeviceColumn ? rows[i]["device"]?.trim() : selectedDeviceId;
-      if (!rowDev) {
-        setError(`Row ${i + 1} has no device. Please select a default device or add a "device" column.`);
-        return;
-      }
-    }
-
-    setBusy(true);
-    setError(null);
-    try {
-      // DEMO ONLY: no real on-chain write, we just simulate a delay
-      await new Promise((r) => setTimeout(r, 900));
-      setOk(`Demo: published ${rows.length} row(s)${hasDeviceColumn ? "" : ` with device "${selectedDeviceId}"`}.`);
-      clearCSV();
-      setTimeout(() => setOk(null), 1800);
-    } catch (err: any) {
-      setError(err?.message || "Failed to publish (demo).");
-    } finally {
-      setBusy(false);
-    }
+  // Demo CSV using the selected device + its vault name
+  function downloadDemoCSV() {
+    const d = selDevice?.id || "dev-001";
+    const v = csvVault || selDevice?.vault || "vault-001";
+    const header = "title,lat,lon,ph,ec,ntu,temp,desc,device,vault";
+    const lines = [
+      header,
+      `Bridge South,46.5191,6.5668,7.2,220,2.1,15.4,Sunny,${d},${v}`,
+      `River Bend,46.5211,6.5632,7.3,230,2.0,15.6,Clear,${d},${v}`,
+    ].join("\n");
+    const blob = new Blob([lines], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "aquapulse-demo.csv"; a.click();
+    URL.revokeObjectURL(url);
   }
 
-  const isDisabled = busy || !account || rows.length === 0;
+  function onPublishDemo(e) {
+    e.preventDefault();
+    if (!selDevice) return alert("Add/select a device first.");
+    if (!rows.length) return alert("Upload a CSV first.");
+    const resolved = rows.map((r) => ({
+      ...r,
+      device: r.device || selDevice.id,
+      vault: r.vault || csvVault || selDevice.vault,
+    }));
+    console.log("DEMO — would publish rows:", resolved);
+    alert(`Demo: ${resolved.length} row(s) ready (device="${selDevice.id}", vault="${selDevice.vault}")`);
+    clearCSV();
+  }
 
   return (
-    <div className="relative">
+    <div className="relative min-h-screen text-white">
+      {/* Background Video */}
       <BackgroundVideo />
 
-      <div className="relative z-0 mx-auto max-w-5xl px-4 py-12">
-        <div className="flex items-center gap-3">
-          <h1 className="text-3xl md:text-4xl font-bold">Publish data (CSV)</h1>
-          <span className="rounded-full bg-amber-400/20 text-amber-200 px-3 py-1 text-xs border border-amber-300/30">
-            DEMO ONLY
-          </span>
+      <main className="relative z-10 mx-auto max-w-5xl px-4 py-10">
+      <h1 className="text-2xl font-semibold">Data • Add device & CSV (demo)</h1>
+
+      {/* Device card */}
+      <section className="mt-6 rounded-2xl border border-white/10 bg-white/10 p-5">
+        <h2 className="text-lg font-semibold">Devices</h2>
+        <p className="text-sm text-white/70">Each device stores a default <b>vault name</b> used when CSV rows have no vault.</p>
+
+        <div className="mt-4 grid gap-3 sm:grid-cols-3">
+          <input value={devId} onChange={(e) => setDevId(e.target.value)} placeholder="Device ID (required)"
+                 className="rounded-lg bg-white/10 border border-white/10 px-3 py-2" />
+          <input value={devName} onChange={(e) => setDevName(e.target.value)} placeholder="Device name (optional)"
+                 className="rounded-lg bg-white/10 border border-white/10 px-3 py-2" />
+          <input value={devVault} onChange={(e) => setDevVault(e.target.value)} placeholder="Vault name (required)"
+                 className="rounded-lg bg-white/10 border border-white/10 px-3 py-2" />
+        </div>
+        <div className="mt-3 flex gap-2">
+          <button onClick={addDevice} className="rounded-lg bg-sky-400 text-slate-900 px-4 py-2 font-medium">Add device</button>
+          <button onClick={removeSelected} className="rounded-lg border border-white/10 bg-white/10 px-4 py-2">Remove selected</button>
         </div>
 
-        <p className="mt-2 text-slate-300">
-          choose a device 
+        {/* Device selector */}
+        <div className="mt-4">
+          <label className="text-sm text-white/70">Selected device</label>
+          <select
+            className="mt-2 w-full rounded-lg bg-white/10 border border-white/10 px-3 py-2"
+            value={selIndex}
+            onChange={(e) => setSelIndex(parseInt(e.target.value, 10))}
+          >
+            {devices.length === 0 && <option value={0}>No device</option>}
+            {devices.map((d, i) => (
+              <option key={`${d.id}-${i}`} value={i}>
+                {d.name || d.id} — id:{d.id} — vault:{d.vault}
+              </option>
+            ))}
+          </select>
+        </div>
+      </section>
+
+      {/* CSV card */}
+      <section className="mt-6 rounded-2xl border border-white/10 bg-white/10 p-5">
+        <h2 className="text-lg font-semibold">CSV (demo)</h2>
+        <p className="text-sm text-white/70">
+          Required: <code>title,lat,lon</code>. Optional: <code>ph,ec,ntu,temp,desc,device,vault</code>.
+          If a row has no <code>vault</code>, the selected device's vault is used (or the CSV default below).
         </p>
 
-        {/* DEVICE CARD */}
-        <div className="mt-6 rounded-2xl border border-white/10 bg-white/10 p-5 backdrop-blur-sm">
-          <h2 className="text-xl font-semibold">Device</h2>
-          <p className="text-sm text-slate-300 mt-1">
-            Choose a device.
-          </p>
-
-          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <select
-              value={selectedDeviceId}
-              onChange={(e) => setSelectedDeviceId(e.target.value)}
-              className="w-full sm:w-80 rounded-xl bg-white/10 border border-white/10 px-3 py-2 outline-none focus:ring-2 focus:ring-sky-400/50"
-            >
-              {devices.length === 0 && <option value="">No device yet</option>}
-              {devices.map((d) => (
-                <option key={d.id} value={d.id}>
-                  {d.name} — {d.id}
-                </option>
-              ))}
-            </select>
-
-            <button
-              type="button"
-              onClick={() => selectedDeviceId && removeDevice(selectedDeviceId)}
-              className="rounded-xl px-4 py-2 border border-white/15 hover:bg-white/10 transition disabled:opacity-40"
-              disabled={!selectedDeviceId}
-              title="Remove selected device"
-            >
-              Remove
-            </button>
-          </div>
-
-          <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_1fr_auto]">
-            <input
-              value={newDevName}
-              onChange={(e) => setNewDevName(e.target.value)}
-              placeholder="Device name (e.g., River Edge #2)"
-              className="rounded-xl bg-white/10 border border-white/10 px-3 py-2 outline-none focus:ring-2 focus:ring-sky-400/50"
-            />
-            <input
-              value={newDevId}
-              onChange={(e) => setNewDevId(e.target.value)}
-              placeholder="Device ID (e.g., dev-002 or on-chain object ID)"
-              className="rounded-xl bg-white/10 border border-white/10 px-3 py-2 outline-none focus:ring-2 focus:ring-sky-400/50"
-            />
-            <button
-              type="button"
-              onClick={addDevice}
-              className="rounded-xl px-4 py-2 bg-sky-400 text-slate-900 font-semibold hover:bg-sky-300 transition"
-            >
-              Add device
-            </button>
-          </div>
+        {/* CSV default vault name */}
+        <div className="mt-3">
+          <label className="block text-sm text-white/70">CSV default vault name</label>
+          <input
+            value={csvVault}
+            onChange={(e) => setCsvVault(e.target.value)}
+            placeholder="Vault name (used if CSV has no vault column)"
+            className="mt-1 w-full rounded-lg bg-white/10 border border-white/10 px-3 py-2"
+          />
+          <p className="mt-1 text-xs text-white/60">If left empty, we fall back to the selected device's vault.</p>
         </div>
 
-        <form
-          onSubmit={onSubmit}
-          className="relative mt-8 rounded-2xl border border-white/10 bg-white/10 p-6 backdrop-blur-sm shadow-lg"
-        >
-          {/* Toasts */}
-          {ok && (
-            <div className="pointer-events-none absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 rounded-xl bg-emerald-400/90 px-6 py-3 text-slate-900 font-semibold shadow-lg">
-              {ok}
-            </div>
-          )}
-          {error && (
-            <div className="mb-4 rounded-xl bg-rose-500/15 border border-rose-400/30 px-4 py-3 text-rose-100">
-              {error}
-            </div>
-          )}
+        <div className="mt-3 flex flex-wrap items-center gap-3">
+          <input ref={inputRef} type="file" accept=".csv,text/csv" onChange={onPickCSV}
+                 className="file:mr-3 file:rounded-md file:border-0 file:bg-white/10 file:px-3 file:py-2 file:text-white hover:file:bg-white/15" />
+          <button type="button" onClick={downloadDemoCSV}
+                  className="rounded-lg border border-white/10 bg-white/10 px-3 py-2">Download demo CSV</button>
+          <span className="text-sm text-white/70">{fileName || "No file selected"}</span>
+          <button type="button" onClick={clearCSV}
+                  className="ml-auto rounded-lg border border-white/10 bg-white/10 px-3 py-2">Clear</button>
+        </div>
 
-          {/* CSV picker (custom so labels are always in English) */}
-          <div className="grid gap-4 md:grid-cols-[1fr,auto] md:items-end">
-            <div>
-              <label className="block text-sm font-semibold">CSV file</label>
-
-              <div className="mt-2 flex items-center gap-4">
-                {/* Hidden input */}
-                <input
-                  id="csvInput"
-                  ref={inputRef}
-                  type="file"
-                  accept=".csv,text/csv"
-                  onChange={onPickCSV}
-                  className="sr-only"
-                />
-                {/* Custom button */}
-                <label
-                  htmlFor="csvInput"
-                  className="cursor-pointer rounded-lg bg-sky-400 px-4 py-2 font-semibold text-slate-900 hover:bg-sky-300 transition"
-                >
-                  Select CSV
-                </label>
-                {/* Filename */}
-                <span className="text-slate-200/90 text-sm">
-                  {csvFile ? csvFile.name : "No file selected"}
-                </span>
-              </div>
-
-              <p className="mt-2 text-xs text-slate-300/90">
-                Example header: <code className="font-mono">title,lat,lon,ph,ec,ntu,temp,desc,device</code>
-              </p>
-              <p className="mt-1 text-xs text-amber-200/90">
-                Demo: publishing is simulated.
-              </p>
-            </div>
-
-            <div className="flex gap-2 md:justify-end">
-              <button
-                type="button"
-                onClick={clearCSV}
-                className="rounded-xl px-4 py-2 border border-white/15 hover:bg-white/10 transition"
-                disabled={!csvFile}
-                title="Clear selected file"
-              >
-                Clear
-              </button>
-              <button
-                type="submit"
-                disabled={isDisabled}
-                className={`rounded-xl px-6 py-2.5 font-semibold transition
-                  ${isDisabled
-                    ? "bg-white/10 text-slate-400 cursor-not-allowed"
-                    : "bg-sky-400 text-slate-900 hover:bg-sky-300"}`}
-                title={!account ? "Connect your wallet in the top bar" : "Demo publish (simulated)"}
-              >
-                {busy ? "Publishing…" : rows.length > 0 ? `Publish ${rows.length} row(s)` : "Publish"}
-              </button>
-            </div>
-          </div>
-
-          {/* Preview (first 5 rows) */}
-          {rows.length > 0 && (
-            <div className="mt-6 overflow-auto rounded-xl border border-white/10">
-              <table className="min-w-full text-sm">
-                <thead className="bg-white/10">
-                  <tr>
-                    {columns.map((col) => (
-                      <th key={col} className="px-3 py-2 text-left font-semibold capitalize">
-                        {col}
-                      </th>
-                    ))}
-                    {!columns.includes("device") && (
-                      <th className="px-3 py-2 text-left font-semibold">device (default)</th>
-                    )}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-white/5">
-                  {rows.slice(0, 5).map((r, idx) => (
-                    <tr key={idx} className="odd:bg-white/0 even:bg-white/[0.03]">
-                      {columns.map((c) => (
-                        <td key={c} className="px-3 py-2 text-slate-200/90">
-                          {r[c] ?? ""}
-                        </td>
-                      ))}
-                      {!columns.includes("device") && (
-                        <td className="px-3 py-2 text-slate-300/90">{selectedDeviceId || "—"}</td>
-                      )}
-                    </tr>
+        {/* Preview */}
+        {!!rows.length && (
+          <div className="mt-4 overflow-x-auto rounded-lg border border-white/10">
+            <table className="min-w-full text-sm">
+              <thead className="bg-white/5">
+                <tr>
+                  {cols.map((c) => (
+                    <th key={c} className="px-3 py-2 text-left">{c}</th>
                   ))}
-                </tbody>
-              </table>
-              <div className="px-3 py-2 text-xs text-slate-300/90">
-                Showing {Math.min(5, rows.length)} of {rows.length} row(s).
-              </div>
-            </div>
-          )}
+                </tr>
+              </thead>
+              <tbody>
+                {rows.slice(0, 5).map((r, i) => (
+                  <tr key={i} className="odd:bg-white/0 even:bg-white/5">
+                    {cols.map((c) => (
+                      <td key={c} className="px-3 py-2">{r[c] || ""}</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div className="px-3 py-2 text-xs text-white/70">Showing {Math.min(5, rows.length)} of {rows.length}</div>
+          </div>
+        )}
+
+        <form onSubmit={onPublishDemo} className="mt-3">
+          <button className="rounded-lg bg-emerald-400 text-slate-900 px-4 py-2 font-medium" disabled={!rows.length || !selDevice}>
+            {rows.length ? `Publish demo (${rows.length})` : "Publish demo"}
+          </button>
         </form>
-      </div>
+      </section>
+    </main>
     </div>
   );
 }
