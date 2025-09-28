@@ -94,53 +94,53 @@ export default function AccessPage() {
 
         const access_control = async(): Promise<boolean> => {
             try {
-                if(!account){
-                  return false;
-                }
-        const encryptedBytes_from_wal = await walrusClient.readBlob({blobId: "0b813QU56CXsXgDO8p1G4FGpINkKhmviLHv6XNNM_dI"});
-        const encryptedObjects = encryptedBytes_from_wal;
-        console.log(encryptedBytes_from_wal)
-        const packageId = "0x1d8dd04dd5f072d505c0bbb64180b65f402ffc932241af76528a6b6f39fb1035"
-        console.log("Creating session key...");
-        const sessionKey = await SessionKey.create({
-            address: account?.address,
-            packageId: packageId,
-            ttlMin: 10, // TTL of 10 minutes
-            suiClient: new SuiClient({ url: getFullnodeUrl('testnet') }),
-        });
-        console.log("Signing session key...");
-        const message = sessionKey.getPersonalMessage();
-        console.log("Message created...");
-        signPersonalMessage(
-								{
-									message,
-								},
-								{
-									onSuccess: (result) => setSignature(result.signature),
-								},
-							); // User confirms in wallet
-        console.log("Signature created...");
-        sessionKey.setPersonalMessageSignature(signature); // Initialization complete
-        console.log("Session key created...");
-        // Create the Transaction for evaluating the seal_approve function.
-        console.log("Creating transaction...");
+        //         if(!account){
+        //           return false;
+        //         }
+        // const encryptedBytes_from_wal = await walrusClient.readBlob({blobId: "0b813QU56CXsXgDO8p1G4FGpINkKhmviLHv6XNNM_dI"});
+        // const encryptedObjects = encryptedBytes_from_wal;
+        // console.log(encryptedBytes_from_wal)
+        // const packageId = "0x1d8dd04dd5f072d505c0bbb64180b65f402ffc932241af76528a6b6f39fb1035"
+        // console.log("Creating session key...");
+        // const sessionKey = await SessionKey.create({
+        //     address: account?.address,
+        //     packageId: packageId,
+        //     ttlMin: 10, // TTL of 10 minutes
+        //     suiClient: new SuiClient({ url: getFullnodeUrl('testnet') }),
+        // });
+        // console.log("Signing session key...");
+        // const message = sessionKey.getPersonalMessage();
+        // console.log("Message created...");
+        // signPersonalMessage(
+				// 				{
+				// 					message,
+				// 				},
+				// 				{
+				// 					onSuccess: (result) => setSignature(result.signature),
+				// 				},
+				// 			); // User confirms in wallet
+        // console.log("Signature created...");
+        // sessionKey.setPersonalMessageSignature(signature); // Initialization complete
+        // console.log("Session key created...");
+        // // Create the Transaction for evaluating the seal_approve function.
+        // console.log("Creating transaction...");
             
-        const settingObjectId =  "0x5fbdd9b580dfc46cc9c6790beca4ee11c9f39c80d67694f249105b7c593a7c4b"
-        const tx = new Transaction();
-        const str = fromHex("0x18959ea37ee943aae83b0a40662d3b94cb4b78070be8c9275178da0966094553");
-        console.log(str)
-        tx.moveCall({
-            target: `${packageId}::CleanWater::seal_approve`,
-            arguments: [tx.pure.vector("u8", str), tx.object(settingObjectId)],
-        })
-        const txBytes = await tx.build({ client: suiClient, onlyTransactionKind: true });
-        console.log("Decrypting data...");
-        const decryptedBytes = await withTimeout(
-        client.decrypt({ data: encryptedObjects, sessionKey, txBytes }),
-            30000,
-            'Seal decrypt'
-        );
-        console.log("Decrypted data:", decryptedBytes);
+        // const settingObjectId =  "0x5fbdd9b580dfc46cc9c6790beca4ee11c9f39c80d67694f249105b7c593a7c4b"
+        // const tx = new Transaction();
+        // const str = fromHex("0x18959ea37ee943aae83b0a40662d3b94cb4b78070be8c9275178da0966094553");
+        // console.log(str)
+        // tx.moveCall({
+        //     target: `${packageId}::CleanWater::seal_approve`,
+        //     arguments: [tx.pure.vector("u8", str), tx.object(settingObjectId)],
+        // })
+        // const txBytes = await tx.build({ client: suiClient, onlyTransactionKind: true });
+        // console.log("Decrypting data...");
+        // const decryptedBytes = await withTimeout(
+        // client.decrypt({ data: encryptedObjects, sessionKey, txBytes }),
+        //     30000,
+        //     'Seal decrypt'
+        // );
+        // console.log("Decrypted data:", decryptedBytes);
         return true
     } catch (error) {
         console.log("Error occured")
@@ -160,12 +160,12 @@ export default function AccessPage() {
 //   return bytes;
 // }
 
-function withTimeout(p, ms, label) {
-  return new Promise((res, rej) => {
-    const t = setTimeout(() => rej(new Error(`${label} timed out after ${ms}ms`)), ms);
-    p.then(v => { clearTimeout(t); res(v); }, e => { clearTimeout(t); rej(e); });
-  });
-}
+// function withTimeout(p, ms, label) {
+//   return new Promise((res, rej) => {
+//     const t = setTimeout(() => rej(new Error(`${label} timed out after ${ms}ms`)), ms);
+//     p.then(v => { clearTimeout(t); res(v); }, e => { clearTimeout(t); rej(e); });
+//   });
+// }
 
 // ⚡ Fonction pour récupérer les OwnerCaps (démo)
 async function fetchOwnerCapsFor(address?: string): Promise<string[]> {
