@@ -1,17 +1,15 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import BackgroundVideo from "../components/BackgroundVideo";
 
-export default function DataPage() {
-  const [cols, setCols] = useState([]);
-  const [rows, setRows] = useState([]);
-  const [csvVault, setCsvVault] = useState("");
-  const [vaultList, setVaultList] = useState([]); // Liste des vaults
-  const inputRef = useRef(null);
-  const main = async() => {
-    const objectId = "0x29ee0e7fb4d9867235899cdccdda33ad365f78241ca6f208ba2a9fb66e242c11"; // Replace with your object ID
-    
+// --- Export de la liste des vaults récupérés ---
+export let INITIAL_VAULT_LIST = [];
+
+// Fonction pour récupérer la liste depuis Sui
+async function fetchVaults() {
+  const objectId = "0x29ee0e7fb4d9867235899cdccdda33ad365f78241ca6f208ba2a9fb66e242c11"; 
+  try {
     const response = await fetch("https://fullnode.testnet.sui.io:443", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -20,24 +18,39 @@ export default function DataPage() {
         id: 1,
         method: "sui_getObject",
         params: [objectId,
-            {
-                "showType": true,
-                "showOwner": false,
-                "showPreviousTransaction": true,
-                "showDisplay": false,
-                "showContent": true,
-                "showBcs": false,
-                "showStorageRebate": true
-            }
+          {
+            showType: true,
+            showOwner: false,
+            showPreviousTransaction: true,
+            showDisplay: false,
+            showContent: true,
+            showBcs: false,
+            showStorageRebate: true
+          }
         ],
       }),
     });
-    
-    const data = await response.json();
 
-    console.log(data.result.data.content.fields.storage);
-    return data
+    const data = await response.json();
+    const vaults = data.result?.data?.content?.fields?.storage ?? [];
+    INITIAL_VAULT_LIST = vaults;
+  } catch (err) {
+    console.error("Erreur lors de la récupération des vaults:", err);
+    INITIAL_VAULT_LIST = [];
+  }
 }
+
+// Appel immédiat pour remplir INITIAL_VAULT_LIST
+fetchVaults();
+
+export default function DataPage() {
+  const [cols, setCols] = useState([]);
+  const [rows, setRows] = useState([]);
+  const [csvVault, setCsvVault] = useState("");
+  const [vaultList, setVaultList] = useState([]);
+  const inputRef = useRef(null);
+
+  // --- CSV Parsing ---
   function splitCSVLine(line) {
     const out = [];
     let cur = "";
@@ -67,7 +80,7 @@ export default function DataPage() {
     if (!lines.length) return;
     const headers = splitCSVLine(lines[0])
       .map((h) => h.toLowerCase())
-      .filter((h) => h !== "vault"); // On supprime 'vault' des colonnes
+      .filter((h) => h !== "vault");
     const data = [];
     for (let i = 1; i < lines.length; i++) {
       const parts = splitCSVLine(lines[i]);
@@ -98,6 +111,17 @@ export default function DataPage() {
     clearCSV();
   }
 
+  // --- Mise à jour automatique de vaultList après fetch ---
+  useEffect(() => {
+    console.log("Vault list raw:", INITIAL_VAULT_LIST); // Pour vérifier
+    setVaultList([...INITIAL_VAULT_LIST]);
+  }, []);
+
+  // --- Fonction utilitaire pour récupérer le nom d’un vault ---
+  function getVaultLabel(vault) {
+    return vault.fields?.title || "Unknown Vault";
+  }
+
   return (
     <div className="relative min-h-screen text-white">
       <BackgroundVideo />
@@ -118,7 +142,9 @@ export default function DataPage() {
             >
               {vaultList && vaultList.length > 0 ? (
                 vaultList.map((v, i) => (
-                  <option key={i} value={v}>{v}</option>
+                  <option key={i} value={v.fields.container_addr}>
+                    {getVaultLabel(v)}
+                  </option>
                 ))
               ) : (
                 <option value="">No vault</option>
@@ -151,7 +177,6 @@ export default function DataPage() {
             </button>
           </div>
 
-          {/* Tableau uniquement si un CSV réel est chargé */}
           {rows.length > 0 && (
             <div className="overflow-x-auto rounded-lg border border-white/10 mb-3">
               <table className="min-w-full text-sm">
