@@ -110,14 +110,12 @@ export default function DataPage(): JSX.Element {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const whitelistedId = "0x18959ea37ee943aae83b0a40662d3b94cb4b78070be8c9275178da0966094553";
   const suiClient = new SuiClient({ url: getFullnodeUrl('testnet') });
-  const packageId = '0x560830e123ecf343fb5f9dd8339fcbec8bca0c232dc4615ba4b4b2ee0db2865f';
-  const STORAGE_ID = '0x29ee0e7fb4d9867235899cdccdda33ad365f78241ca6f208ba2a9fb66e242c11';
+  const packageId = '0x1d8dd04dd5f072d505c0bbb64180b65f402ffc932241af76528a6b6f39fb1035';
+  const STORAGE_ID = '0x7aa30758bc879c53dfb723bd6c1110d5f11a36afbf0551ff486ee34dfffefa7c';
   const PUBLISHER = "https://publisher.walrus-testnet.walrus.space";
   const { mutate: signAndExecuteTransaction } = useSignAndExecuteTransaction();
-  const serverObjectIds = [
-    "0x164ac3d2b3b8694b8181c13f671950004765c23f270321a45fdd04d40cccf0f2", 
-    "0x5466b7df5c15b508678d51496ada8afab0d6f70a01c10613123382b1b8131007"
-  ];
+  const serverObjectIds = ["0x73d05d62c18d9374e3ea529e8e0ed6161da1a141a94d3f76ae3fe4e99356db75", "0xf5d14a81a982144ae441cd7d64b09027f116a468bd36e7eca494f750591623c8", "0x9c949e53c36ab7a9c484ed9e8b43267a77d4b8d70e79aa6b39042e3d4c434105"];
+ 
   const sealClient = new SealClient({
     suiClient,
     serverConfigs: serverObjectIds.map((id) => ({
@@ -130,7 +128,7 @@ export default function DataPage(): JSX.Element {
   /** ---------- API Sui ---------- */
   async function fetchVaults(): Promise<Vault[]> {
     const objectId =
-      "0x29ee0e7fb4d9867235899cdccdda33ad365f78241ca6f208ba2a9fb66e242c11";
+      "0x7aa30758bc879c53dfb723bd6c1110d5f11a36afbf0551ff486ee34dfffefa7c";
   
     try {
       const response = await fetch("https://fullnode.testnet.sui.io:443", {
@@ -285,14 +283,13 @@ export default function DataPage(): JSX.Element {
         id: whitelistedId,
         data: sealed_data
     });
-    const fileBytes = encryptedBytes;
     console.log("Encrypted data: ", encryptedBytes);
     const res = await fetch(`${PUBLISHER}/v1/blobs?epochs=10`, {
       method: "PUT",
       headers: {
         "Content-Type": "text/plain",
       },
-      body: sealed_data,
+      body: encryptedBytes,
     });
 
     if (!res.ok) {

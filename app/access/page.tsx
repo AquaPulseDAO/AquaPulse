@@ -88,6 +88,7 @@ export default function AccessPage() {
   const canAccess = useMemo(() => new Set(caps), [caps]);
 
   function openVault(v: Vault) {
+    
     if (canAccess.has(v.id)) router.push(`/vault/${v.id}`);
     else router.push(`/access-denied?vid=${encodeURIComponent(v.id)}`);
   }

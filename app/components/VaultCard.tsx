@@ -11,6 +11,7 @@ type Props = {
 };
 
 export default function VaultCard({ title, subtitle, preview = [], locked, onClick }: Props) {
+  
   return (
     <button
       onClick={onClick}
@@ -22,12 +23,12 @@ export default function VaultCard({ title, subtitle, preview = [], locked, onCli
           <h3 className="text-xl font-semibold">{title}</h3>
           {subtitle && <p className="text-slate-300 text-sm mt-1">{subtitle}</p>}
         </div>
-        <span
+        {/* <span
           className={`rounded-full px-2.5 py-1 text-xs border
             ${locked ? "border-white/15 bg-white/5 text-slate-300" : "border-emerald-300/40 bg-emerald-400/15 text-emerald-200"}`}
         >
           {locked ? "Locked" : "Owner"}
-        </span>
+        </span> */}
       </div>
 
       <div className="mt-4 h-16 rounded-xl border border-white/10 bg-white/5 p-2">

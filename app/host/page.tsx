@@ -23,8 +23,8 @@ export default function HostPage() {
       console.log(tx);
       const [coin] = tx.splitCoins(tx.gas, [Number(coins)]);
       console.log(coin)
-      const packageId = '0x560830e123ecf343fb5f9dd8339fcbec8bca0c232dc4615ba4b4b2ee0db2865f';
-      const storageId = '0x29ee0e7fb4d9867235899cdccdda33ad365f78241ca6f208ba2a9fb66e242c11';
+      const packageId = '0x1d8dd04dd5f072d505c0bbb64180b65f402ffc932241af76528a6b6f39fb1035';
+      const storageId = '0x7aa30758bc879c53dfb723bd6c1110d5f11a36afbf0551ff486ee34dfffefa7c';
       tx.moveCall({ 
           arguments: [tx.object(storageId), tx.pure.string(title), tx.pure.u64(coins), coin, tx.pure.u32(Number(maxPeople))],
           target: `${packageId}::CleanWater::create_vault`
