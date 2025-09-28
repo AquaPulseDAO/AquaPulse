@@ -2,7 +2,8 @@
 
 import { useState, useRef, useEffect } from "react";
 import BackgroundVideo from "../components/BackgroundVideo";
-
+import { getFullnodeUrl, SuiClient } from "@mysten/sui/client";
+import { SealClient } from "@mysten/seal";
 /** ---------- Types ---------- */
 type Row = Record<string, string>;
 
@@ -97,6 +98,8 @@ function splitCSVLine(line: any): string[] {
   out.push(cur);
   return out.map((s) => s.trim());
 }
+=======
+>>>>>>> 2095c7a (Hello world)
 
 export default function DataPage(): JSX.Element {
   const [cols, setCols] = useState<string[]>([]);
@@ -104,15 +107,99 @@ export default function DataPage(): JSX.Element {
   const [csvVault, setCsvVault] = useState<string>("");
   const [vaultList, setVaultList] = useState<Vault[]>([]);
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const whitelistedId = "0x18959ea37ee943aae83b0a40662d3b94cb4b78070be8c9275178da0966094553";
+  const suiClient = new SuiClient({ url: getFullnodeUrl('testnet') });
+  const packageId = '0x3f00d30514f3a610ec8f9297b63325b439fc293199e9b0eb63847d08fc4eca50';
+  const PUBLISHER = "https://publisher.walrus-testnet.walrus.space";
+  const serverObjectIds = [
+    "0x164ac3d2b3b8694b8181c13f671950004765c23f270321a45fdd04d40cccf0f2", 
+    "0x5466b7df5c15b508678d51496ada8afab0d6f70a01c10613123382b1b8131007"
+  ];
+  const sealClient = new SealClient({
+    suiClient,
+    serverConfigs: serverObjectIds.map((id) => ({
+      objectId: id,
+      weight: 1,
+    })),
+    verifyKeyServers: false,
+  });
+
+  /** ---------- API Sui ---------- */
+  async function fetchVaults(): Promise<Vault[]> {
+    const objectId =
+      "0x29ee0e7fb4d9867235899cdccdda33ad365f78241ca6f208ba2a9fb66e242c11";
+  
+    try {
+      const response = await fetch("https://fullnode.testnet.sui.io:443", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          id: 1,
+          method: "sui_getObject",
+          params: [
+            objectId,
+            {
+              showType: true,
+              showOwner: false,
+              showPreviousTransaction: true,
+              showDisplay: false,
+              showContent: true,
+              showBcs: false,
+              showStorageRebate: true,
+            },
+          ],
+        }),
+      });
+  
+      const json: SuiGetObjectResponse = await response.json();
+      const storage = json?.result?.data?.content?.fields?.storage;
+  
+      if (Array.isArray(storage)) {
+        // On suppose que chaque entrée ressemble à Vault
+        return storage as Vault[];
+      }
+      return [];
+    } catch (err) {
+      console.error("Erreur lors de la récupération des vaults:", err);
+      return [];
+    }
+  }
+  
+  /** ---------- Utils CSV ---------- */
+  function splitCSVLine(line: string): string[] {
+    const out: string[] = [];
+    let cur = "";
+    let inQ = false;
+  
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') {
+        if (inQ && line[i + 1] === '"') {
+          cur += '"';
+          i++;
+        } else {
+          inQ = !inQ;
+        }
+      } else if (ch === "," && !inQ) {
+        out.push(cur);
+        cur = "";
+      } else {
+        cur += ch;
+      }
+    }
+    out.push(cur);
+    return out.map((s) => s.trim());
+  }
 
   function parseCSV(text: string): void {
     const lines = text.split(/\r?\n/).filter((l) => l.trim().length > 0);
     if (!lines.length) return;
-
+    
     const headers = splitCSVLine(lines[0])
-      .map((h) => h.toLowerCase())
-      .filter((h) => h !== "vault"); // on ignore la colonne "vault" si présente
-
+    .map((h) => h.toLowerCase())
+    .filter((h) => h !== "vault"); // on ignore la colonne "vault" si présente
+    
     const data: Row[] = [];
     for (let i = 1; i < lines.length; i++) {
       const parts = splitCSVLine(lines[i]);
@@ -122,11 +209,11 @@ export default function DataPage(): JSX.Element {
       });
       data.push(obj);
     }
-
+    
     setCols(headers);
     setRows(data);
   }
-
+  
   function onPickCSV(e: React.ChangeEvent<HTMLInputElement>): void {
     const f = e.target.files?.[0];
     if (!f) return;
@@ -141,18 +228,47 @@ export default function DataPage(): JSX.Element {
 
   function onPublishDemo(e: React.FormEvent<HTMLFormElement>): void {
     e.preventDefault();
+    const f = e.target.files?.[0];
+    if (!f) return;
     if (!rows.length) {
       alert("Upload a CSV first.");
       return;
     }
-    alert(
-      `Demo: ${rows.length} row(s) ready to publish in vault "${
-        csvVault || "No vault"
-      }".`
-    );
+    storeCSV_flie(f)
     clearCSV();
   }
 
+  /** ---------- API Walrus ---------- */
+  
+  const storeCSV_flie = async(csv_file: File) => {
+    const text = await csv_file?.text();
+    const sealed_data = new TextEncoder().encode(text);
+    console.log("Encrypting data...");
+    const { encryptedObject: encryptedBytes, key: backupKey } = await sealClient.encrypt({
+        threshold: 1,
+        packageId: packageId,
+        id: whitelistedId,
+        data: sealed_data
+    });
+    const fileBytes = encryptedBytes;
+    console.log("Encrypted data: ", encryptedBytes);
+    const res = await fetch(`${PUBLISHER}/v1/blobs?epochs=10`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "text/plain",
+      },
+      body: sealed_data,
+    });
+
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      throw new Error(`Upload failed: ${res.status} ${res.statusText} ${text}`);
+    }
+
+    // Walrus publisher returns JSON with info about the blob
+    const data = await res.json();
+    console.log("Publisher response:", data);
+  }
   /** ---------- Charge les vaults au montage ---------- */
   useEffect(() => {
     let cancelled = false;
