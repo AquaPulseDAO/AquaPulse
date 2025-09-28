@@ -14,6 +14,22 @@ type Vault = {
   };
 } & Record<string, unknown>;
 
+/** Type minimal pour typer la réponse JSON de sui_getObject */
+type SuiGetObjectResponse = {
+  jsonrpc?: string;
+  id?: number | string;
+  result?: {
+    data?: {
+      content?: {
+        fields?: {
+          storage?: unknown;
+        };
+      };
+    };
+  };
+  error?: unknown;
+};
+
 /** ---------- API Sui ---------- */
 async function fetchVaults(): Promise<Vault[]> {
   const objectId =
@@ -42,9 +58,14 @@ async function fetchVaults(): Promise<Vault[]> {
       }),
     });
 
-    const json = await response.json();
-    const vaults: Vault[] = json?.result?.data?.content?.fields?.storage ?? [];
-    return Array.isArray(vaults) ? vaults : [];
+    const json: SuiGetObjectResponse = await response.json();
+    const storage = json?.result?.data?.content?.fields?.storage;
+
+    if (Array.isArray(storage)) {
+      // On suppose que chaque entrée ressemble à Vault
+      return storage as Vault[];
+    }
+    return [];
   } catch (err) {
     console.error("Erreur lors de la récupération des vaults:", err);
     return [];
@@ -77,14 +98,14 @@ function splitCSVLine(line: string): string[] {
   return out.map((s) => s.trim());
 }
 
-export default function DataPage() {
+export default function DataPage(): JSX.Element {
   const [cols, setCols] = useState<string[]>([]);
   const [rows, setRows] = useState<Row[]>([]);
   const [csvVault, setCsvVault] = useState<string>("");
   const [vaultList, setVaultList] = useState<Vault[]>([]);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
-  function parseCSV(text: string) {
+  function parseCSV(text: string): void {
     const lines = text.split(/\r?\n/).filter((l) => l.trim().length > 0);
     if (!lines.length) return;
 
@@ -106,19 +127,19 @@ export default function DataPage() {
     setRows(data);
   }
 
-  function onPickCSV(e: React.ChangeEvent<HTMLInputElement>) {
+  function onPickCSV(e: React.ChangeEvent<HTMLInputElement>): void {
     const f = e.target.files?.[0];
     if (!f) return;
-    f.text().then(parseCSV);
+    void f.text().then(parseCSV);
   }
 
-  function clearCSV() {
+  function clearCSV(): void {
     setCols([]);
     setRows([]);
     if (inputRef.current) inputRef.current.value = "";
   }
 
-  function onPublishDemo(e: React.FormEvent) {
+  function onPublishDemo(e: React.FormEvent<HTMLFormElement>): void {
     e.preventDefault();
     if (!rows.length) {
       alert("Upload a CSV first.");
@@ -140,17 +161,19 @@ export default function DataPage() {
       if (!cancelled) {
         setVaultList(vs);
         // pré-sélection du premier vault si vide
-        if (!csvVault && vs[0]?.fields?.container_addr) {
-          setCsvVault(vs[0].fields.container_addr!);
+        const firstAddr = vs[0]?.fields?.container_addr;
+        if (!csvVault && typeof firstAddr === "string" && firstAddr.length > 0) {
+          setCsvVault(firstAddr);
         }
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, []); // on charge une fois
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // chargement unique
 
-  function getVaultLabel(v: Vault) {
+  function getVaultLabel(v: Vault): string {
     return v.fields?.title || "Unknown Vault";
   }
 
