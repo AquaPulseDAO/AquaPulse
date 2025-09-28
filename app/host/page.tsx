@@ -22,8 +22,9 @@ export default function HostPage() {
    
       
       const tx = new Transaction();
+      const numCoins = Number(coins)*(10**18);
       console.log(tx);
-      const [coin] = tx.splitCoins(tx.gas, [Number(coins)]);
+      const [coin] = tx.splitCoins(tx.gas, [numCoins]);
       console.log(coin)
       const packageId = '0x1d8dd04dd5f072d505c0bbb64180b65f402ffc932241af76528a6b6f39fb1035';
       const storageId = '0x7aa30758bc879c53dfb723bd6c1110d5f11a36afbf0551ff486ee34dfffefa7c';
@@ -88,7 +89,7 @@ export default function HostPage() {
           {/* Coins & Max People */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-semibold mb-1">Coins to invest</label>
+              <label className="block text-sm font-semibold mb-1">Amount of SUI to invest</label>
               <input
                 type="number"
                 value={coins}
