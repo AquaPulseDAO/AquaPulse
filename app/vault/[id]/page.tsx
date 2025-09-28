@@ -18,7 +18,7 @@ export default function VaultDetailPage() {
 
   // Liste des tuples (septuplés)
   const [rows, setRows] = useState<Reading[]>([]);
-
+  console.log(rows);
   useEffect(() => {
     (async () => {
       setLoading(true);

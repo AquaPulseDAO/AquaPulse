@@ -5,12 +5,12 @@ import Spark from "./charts/Spark";
 type Props = {
   title: string;
   subtitle?: string;
-  preview?: number[];
+  preview?: string;
   locked?: boolean;
   onClick?: () => void;
 };
 
-export default function VaultCard({ title, subtitle, preview = [], locked, onClick }: Props) {
+export default function VaultCard({ title, subtitle, preview , locked, onClick }: Props) {
   
   return (
     <button
@@ -32,7 +32,7 @@ export default function VaultCard({ title, subtitle, preview = [], locked, onCli
       </div>
 
       <div className="mt-4 h-16 rounded-xl border border-white/10 bg-white/5 p-2">
-        <Spark data={preview} />
+        <Spark data={preview ? JSON.parse(preview) : []} />
       </div>
 
       <div className="mt-4 text-sm text-slate-300">
