@@ -96,6 +96,7 @@ export default function VaultDetailPage() {
     for (let i = 1; i < lines.length; i++) {
       const parts = splitCSVLine(lines[i]);
       const latStr = parts[idx["lat"]] ?? "";
+      
       const lonStr = parts[idx["lon"]] ?? "";
       const lat = toNum(latStr);
       const lon = toNum(lonStr);

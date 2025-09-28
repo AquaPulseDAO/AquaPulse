@@ -1,3 +1,4 @@
+import { useCurrentAccount } from "@mysten/dapp-kit";
 import BackgroundVideo from "../components/BackgroundVideo";
 
 export default function Device() {

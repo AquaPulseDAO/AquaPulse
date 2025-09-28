@@ -8,7 +8,9 @@ module aqua_pulse::CleanWater{
     const E_NO_SUFFICIENT_SUI: u64 = 0;
     const E_ADDRESS_STORAGE_HIT_MAX: u64 = 0;
     const E_BLOB_DATA_STORAGE_HIT_MAX: u64 = 1;
+    const E_ALREADY_SUBMITTED_TO_DATA: u64 = 2;
     const E_NO_ACCESS_TO_DATA: u64 = 0;
+
     
     public struct PublicStorage has key {
         id: UID,
@@ -88,6 +90,7 @@ module aqua_pulse::CleanWater{
     entry fun submit_data(vault: &mut DataContainer, data: String, ctx: &mut TxContext) {
         assert!(vector::length(&vault.blobIds) < (vault.max as u64), E_BLOB_DATA_STORAGE_HIT_MAX);
         assert!(vector::length(&vault.addresses) < (vault.max as u64), E_ADDRESS_STORAGE_HIT_MAX);
+        assert!(vector::contains(&vault.addresses, &ctx.sender()), E_ALREADY_SUBMITTED_TO_DATA);
         //let id = object::id(string);  
         vector::push_back(&mut vault.blobIds, data);
         

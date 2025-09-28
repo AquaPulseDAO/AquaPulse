@@ -47,7 +47,7 @@ export default function AccessPage() {
           ],
         }),
       });
-      
+
       const data = await response.json();
       const storage = data?.result?.data?.content?.fields?.storage;
 
@@ -87,9 +87,6 @@ export default function AccessPage() {
           <h1 className="text-4xl md:text-5xl font-extrabold leading-tight">
             Vault Access
           </h1>
-          <span className="rounded-full bg-emerald-400/20 text-emerald-200 px-3 py-1 text-xs border border-emerald-300/30">
-            ✅ All vaults accessible
-          </span>
         </div>
         <p className="mt-3 text-lg text-slate-200/90">
           Click a vault to view its files.

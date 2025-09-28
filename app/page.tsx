@@ -2,8 +2,11 @@
 
 import Link from "next/link";
 import BackgroundVideo from "./components/BackgroundVideo";
+import { useCurrentAccount } from "@mysten/dapp-kit";
 
 export default function Home() {
+  const account = useCurrentAccount();
+  console.log("account: ", account?.address);
   return (
     <div className="relative min-h-screen text-slate-100">
       {/* Background Video */}
