@@ -7,6 +7,7 @@ export default function DataPage() {
   const [cols, setCols] = useState([]);
   const [rows, setRows] = useState([]);
   const [csvVault, setCsvVault] = useState("");
+  const [vaultList, setVaultList] = useState([]); // Liste des vaults
   const inputRef = useRef(null);
 
   function splitCSVLine(line) {
@@ -65,7 +66,7 @@ export default function DataPage() {
   function onPublishDemo(e) {
     e.preventDefault();
     if (!rows.length) return alert("Upload a CSV first.");
-    alert(`Demo: ${rows.length} row(s) ready to publish.`);
+    alert(`Demo: ${rows.length} row(s) ready to publish in vault "${csvVault || "No vault"}".`);
     clearCSV();
   }
 
@@ -81,13 +82,20 @@ export default function DataPage() {
 
         <section className="mt-6 rounded-2xl border border-white/10 bg-white/30 p-5">
           <div className="mb-3">
-            <label className="block text-sm text-white/70">CSV default vault name</label>
-            <input
+            <label className="block text-sm text-white/70">CSV Vault Name</label>
+            <select
               value={csvVault}
               onChange={(e) => setCsvVault(e.target.value)}
-              placeholder="Vault name (used if CSV has no vault column)"
               className="mt-1 w-full rounded-lg bg-white/10 border border-white/10 px-3 py-2"
-            />
+            >
+              {vaultList && vaultList.length > 0 ? (
+                vaultList.map((v, i) => (
+                  <option key={i} value={v}>{v}</option>
+                ))
+              ) : (
+                <option value="">No vault</option>
+              )}
+            </select>
           </div>
 
           <div className="flex flex-wrap gap-3 items-center mb-3">
