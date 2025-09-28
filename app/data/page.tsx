@@ -270,6 +270,7 @@ export default function DataPage(): JSX.Element {
     if (inputRef.current) inputRef.current.value = "";
   }
 
+  
   async function onPublishDemo(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!rows.length) {
@@ -345,6 +346,7 @@ export default function DataPage(): JSX.Element {
             resolve();
           },
           onError: (err) => {
+
             console.error(err);
             reject(err);
           }
