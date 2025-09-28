@@ -36,7 +36,7 @@ type SuiGetObjectResponse = {
 /** ---------- API Sui ---------- */
 async function fetchVaults(): Promise<Vault[]> {
   const objectId =
-    "0x29ee0e7fb4d9867235899cdccdda33ad365f78241ca6f208ba2a9fb66e242c11";
+    "0x7aa30758bc879c53dfb723bd6c1110d5f11a36afbf0551ff486ee34dfffefa7c";
 
   try {
     const response = await fetch("https://fullnode.testnet.sui.io:443", {
@@ -104,6 +104,8 @@ function splitCSVLine(line: any): string[] {
 export default function DataPage(): JSX.Element {
   const [cols, setCols] = useState<string[]>([]);
   const [rows, setRows] = useState<Row[]>([]);
+  const [page, setPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(25); // 0 means All
   const [csvVault, setCsvVault] = useState<string>("");
   const [vault, setVault] = useState<Vault | null>(null);
   const [vaultList, setVaultList] = useState<Vault[]>([]);
@@ -219,11 +221,13 @@ export default function DataPage(): JSX.Element {
   function parseCSV(text: string): void {
     const lines = text.split(/\r?\n/).filter((l) => l.trim().length > 0);
     if (!lines.length) return;
-    
-    const headers = splitCSVLine(lines[0])
-    .map((h) => h.toLowerCase())
-    .filter((h) => h !== "vault"); // on ignore la colonne "vault" si présente
-    
+
+    // Allow optional leading "sv:" prefix on the header line
+    const rawHeader = lines[0].replace(/^\s*sv:\s*/i, "");
+    const headers = splitCSVLine(rawHeader)
+      .map((h) => h.toLowerCase())
+      .filter((h) => h !== "vault"); // ignore a potential "vault" column
+
     const data: Row[] = [];
     for (let i = 1; i < lines.length; i++) {
       const parts = splitCSVLine(lines[i]);
@@ -231,10 +235,25 @@ export default function DataPage(): JSX.Element {
       headers.forEach((h, j) => {
         obj[h] = (parts[j] ?? "").trim();
       });
+
+      // Synthesize a title if missing: prefer desc, then device sample, then lat/lon
+      if (!obj["title"] || obj["title"].length === 0) {
+        const lat = obj["lat"];
+        const lon = obj["lon"];
+        const desc = obj["desc"]?.trim();
+        const device = obj["device"]?.trim();
+        obj["title"] =
+          (desc && desc.length > 0 ? desc : undefined) ||
+          (device && device.length > 0 ? `${device} sample` : undefined) ||
+          (lat && lon ? `Sample @ ${lat},${lon}` : "Sample");
+      }
+
       data.push(obj);
     }
-    
-    setCols(headers);
+
+    // Ensure the rendered columns include title if we synthesized it
+    const finalCols = headers.includes("title") ? headers : ["title", ...headers];
+    setCols(finalCols);
     setRows(data);
   }
   
@@ -247,6 +266,7 @@ export default function DataPage(): JSX.Element {
   function clearCSV(): void {
     setCols([]);
     setRows([]);
+    setPage(1);
     if (inputRef.current) inputRef.current.value = "";
   }
 
@@ -409,8 +429,8 @@ export default function DataPage(): JSX.Element {
       <main className="relative z-10 mx-auto max-w-3xl px-4 py-10">
         <h1 className="text-2xl font-semibold">CSV (demo)</h1>
         <p className="mt-1 text-sm text-white/70">
-          Required: <code>title,lat,lon</code>. Optional:{" "}
-          <code>ph,ec,ntu,temp,desc,device</code>.
+          Required: <code>lat,lon</code>. Optional: {" "}
+          <code>ph,ec,ntu,temp,desc,device,title</code>. Header may start with <code>sv:</code>.
         </p>
 
         <section className="mt-6 rounded-2xl border border-white/10 bg-white/30 p-5">
@@ -476,19 +496,88 @@ export default function DataPage(): JSX.Element {
                   </tr>
                 </thead>
                 <tbody>
-                  {rows.slice(0, 5).map((r, i) => (
-                    <tr key={i} className="odd:bg-white/0 even:bg-white/5">
-                      {cols.map((c) => (
-                        <td key={c} className="px-3 py-2">
-                          {r[c] ?? ""}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
+                  {(() => {
+                    const total = rows.length;
+                    const all = pageSize === 0;
+                    const pages = all ? 1 : Math.max(1, Math.ceil(total / pageSize));
+                    const safePage = Math.min(page, pages);
+                    const start = all ? 0 : (safePage - 1) * pageSize;
+                    const end = all ? total : Math.min(total, start + pageSize);
+                    const view = rows.slice(start, end);
+                    return view.map((r, i) => (
+                      <tr key={`${start + i}`} className="odd:bg-white/0 even:bg-white/5">
+                        {cols.map((c) => (
+                          <td key={`${start + i}-${c}`} className="px-3 py-2">
+                            {r[c] ?? ""}
+                          </td>
+                        ))}
+                      </tr>
+                    ));
+                  })()}
                 </tbody>
               </table>
-              <div className="px-3 py-2 text-xs text-white/70">
-                Showing {Math.min(5, rows.length)} of {rows.length}
+              <div className="flex items-center justify-between px-3 py-2 text-xs text-white/70 gap-2">
+                <div>
+                  {(() => {
+                    const total = rows.length;
+                    const all = pageSize === 0;
+                    const pages = all ? 1 : Math.max(1, Math.ceil(total / pageSize));
+                    const safePage = Math.min(page, pages);
+                    const start = all ? 0 : (safePage - 1) * pageSize;
+                    const end = all ? total : Math.min(total, start + pageSize);
+                    return `Showing ${total === 0 ? 0 : start + 1}–${end} of ${total}`;
+                  })()}
+                </div>
+                <div className="flex items-center gap-2">
+                  <label className="mr-1">Rows per page</label>
+                  <select
+                    value={pageSize}
+                    onChange={(e) => {
+                      const val = Number(e.target.value);
+                      setPageSize(val);
+                      setPage(1);
+                    }}
+                    className="rounded bg-white/10 border border-white/10 px-2 py-1"
+                  >
+                    <option value={10}>10</option>
+                    <option value={25}>25</option>
+                    <option value={50}>50</option>
+                    <option value={100}>100</option>
+                    <option value={0}>All</option>
+                  </select>
+                  <button
+                    className="rounded border border-white/10 bg-white/10 px-2 py-1"
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    disabled={page <= 1 || pageSize === 0}
+                  >
+                    Prev
+                  </button>
+                  <span>
+                    {(() => {
+                      const total = rows.length;
+                      const all = pageSize === 0;
+                      const pages = all ? 1 : Math.max(1, Math.ceil(total / pageSize));
+                      const safePage = Math.min(page, pages);
+                      return `${safePage} / ${pages}`;
+                    })()}
+                  </span>
+                  <button
+                    className="rounded border border-white/10 bg-white/10 px-2 py-1"
+                    onClick={() => {
+                      const total = rows.length;
+                      const pages = Math.max(1, Math.ceil(total / (pageSize || total)));
+                      setPage((p) => Math.min(pages, p + 1));
+                    }}
+                    disabled={(() => {
+                      const total = rows.length;
+                      if (pageSize === 0) return true;
+                      const pages = Math.max(1, Math.ceil(total / pageSize));
+                      return page >= pages;
+                    })()}
+                  >
+                    Next
+                  </button>
+                </div>
               </div>
             </div>
           )}

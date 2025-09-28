@@ -4,6 +4,8 @@ import BackgroundVideo from "../components/BackgroundVideo";
 import { getFullnodeUrl, SuiClient } from "@mysten/sui/client";
 import { useCurrentWallet, useSignAndExecuteTransaction } from "@mysten/dapp-kit";
 import { Transaction } from "@mysten/sui/transactions";
+import STORAGE_ID from "constants"
+import TESTNET_PACKAGE_ID from "constants"
 
 export default function HostPage() {
 

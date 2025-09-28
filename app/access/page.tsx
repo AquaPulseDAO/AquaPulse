@@ -23,7 +23,7 @@ export default function AccessPage() {
   // ⚡ Fonction pour récupérer les vaults on-chain
   async function fetchVaultsOnChain(): Promise<Vault[]> {
     const objectId =
-      "0x29ee0e7fb4d9867235899cdccdda33ad365f78241ca6f208ba2a9fb66e242c11";
+      "0x7aa30758bc879c53dfb723bd6c1110d5f11a36afbf0551ff486ee34dfffefa7c";
 
     try {
       const response = await fetch("https://fullnode.testnet.sui.io:443", {
@@ -47,7 +47,7 @@ export default function AccessPage() {
           ],
         }),
       });
-
+      
       const data = await response.json();
       const storage = data?.result?.data?.content?.fields?.storage;
 
