@@ -5,19 +5,81 @@ import { useRouter } from "next/navigation";
 import { useCurrentAccount } from "@mysten/dapp-kit";
 import BackgroundVideo from "../components/BackgroundVideo";
 import VaultCard from "../components/VaultCard";
-import { fetchVaultsDemo, fetchOwnerCapsFor, type Vault } from "../lib/demo";
+
+export type Vault = {
+  id: string;
+  name: string;
+  location: string;
+  preview?: string;
+};
+
+// ⚡ Fonction pour récupérer les vaults on-chain
+async function fetchVaultsOnChain(): Promise<Vault[]> {
+  const objectId =
+    "0x29ee0e7fb4d9867235899cdccdda33ad365f78241ca6f208ba2a9fb66e242c11";
+
+  try {
+    const response = await fetch("https://fullnode.testnet.sui.io:443", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        id: 1,
+        method: "sui_getObject",
+        params: [
+          objectId,
+          {
+            showType: true,
+            showOwner: false,
+            showPreviousTransaction: false,
+            showDisplay: false,
+            showContent: true,
+            showBcs: false,
+            showStorageRebate: false,
+          },
+        ],
+      }),
+    });
+
+    const data = await response.json();
+    const storage = data?.result?.data?.content?.fields?.storage;
+
+    if (!storage || !Array.isArray(storage)) return [];
+
+    return storage.map((item: any, index: number) => ({
+      id: item.fields?.container_addr ?? `vault-${index}`,
+      name: item.fields?.title ?? `Vault ${index + 1}`,
+      location: item.fields?.location ?? "Unknown",
+      preview: undefined,
+    }));
+  } catch (err) {
+    console.error("Erreur fetchVaultsOnChain:", err);
+    return [];
+  }
+}
+
+// ⚡ Fonction pour récupérer les OwnerCaps (démo)
+async function fetchOwnerCapsFor(address?: string): Promise<string[]> {
+  // Remplace par un vrai fetch on-chain si besoin
+  return address ? ["0xDemoVault1", "0xDemoVault2"] : [];
+}
 
 export default function AccessPage() {
   const router = useRouter();
   const account = useCurrentAccount();
+  const address = account?.address;
 
   const [vaults, setVaults] = useState<Vault[]>([]);
   const [caps, setCaps] = useState<string[]>([]);
-  const address = account?.address;
 
   useEffect(() => {
+    if (!address) return;
+
     (async () => {
-      const [v, owned] = await Promise.all([fetchVaultsDemo(), fetchOwnerCapsFor(address)]);
+      const [v, owned] = await Promise.all([
+        fetchVaultsOnChain(),
+        fetchOwnerCapsFor(address),
+      ]);
       setVaults(v);
       setCaps(owned);
     })();
@@ -35,26 +97,33 @@ export default function AccessPage() {
       <BackgroundVideo />
       <main className="relative z-0 mx-auto max-w-6xl px-4 py-12 text-slate-100">
         <div className="flex items-center gap-3">
-          <h1 className="text-4xl md:text-5xl font-extrabold leading-tight">Vault Access</h1>
+          <h1 className="text-4xl md:text-5xl font-extrabold leading-tight">
+            Vault Access
+          </h1>
           <span className="rounded-full bg-amber-400/20 text-amber-200 px-3 py-1 text-xs border border-amber-300/30">
-            DEMO — replace with on-chain queries
+            DEMO — on-chain vaults
           </span>
         </div>
         <p className="mt-3 text-lg text-slate-200/90">
-          Click a vault to view its full dataset and charts. Access requires an <strong>OwnerCap</strong>.
+          Click a vault to view its full dataset. Access requires an{" "}
+          <strong>OwnerCap</strong>.
         </p>
 
         <section className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {vaults.map((v) => (
-            <VaultCard
-              key={v.id}
-              title={v.name}
-              subtitle={v.location}
-              preview={v.preview}
-              locked={!canAccess.has(v.id)}
-              onClick={() => openVault(v)}
-            />
-          ))}
+          {vaults.length === 0 ? (
+            <p className="text-slate-400 col-span-full">No vaults created yet.</p>
+          ) : (
+            vaults.map((v) => (
+              <VaultCard
+                key={v.id}
+                title={v.name}
+                subtitle={v.location}
+                preview={v.preview}
+                locked={!canAccess.has(v.id)}
+                onClick={() => openVault(v)}
+              />
+            ))
+          )}
         </section>
       </main>
     </div>
