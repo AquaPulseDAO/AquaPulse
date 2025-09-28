@@ -73,7 +73,7 @@ async function fetchVaults(): Promise<Vault[]> {
 }
 
 /** ---------- Utils CSV ---------- */
-function splitCSVLine(line: string): string[] {
+function splitCSVLine(line: any): string[] {
   const out: string[] = [];
   let cur = "";
   let inQ = false;
