@@ -40,15 +40,8 @@ function RegisterEnokiWallets() {
 		const { unregister } = registerEnokiWallets({
 			apiKey: 'enoki_public_e2cc5af0aafbf9dda310c8e25a6d7d08',
 			providers: {
-				// Provide the client IDs for each of the auth providers you want to use:
 				google: {
 					clientId: '947156781677-k2sihpm5ecjr1a0a23619q1iqupssl57.apps.googleusercontent.com',
-				},
-				facebook: {
-					clientId: 'YOUR_FACEBOOK_CLIENT_ID',
-				},
-				twitch: {
-					clientId: 'YOUR_TWITCH_CLIENT_ID',
 				},
 			},
 			client,

@@ -51,7 +51,7 @@ export default function DataPage() {
   const inputRef = useRef(null);
 
   // --- CSV Parsing ---
-  function splitCSVLine(line) {
+  function splitCSVLine(line: string) {
     const out = [];
     let cur = "";
     let inQ = false;
