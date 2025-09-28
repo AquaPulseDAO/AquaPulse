@@ -4,6 +4,8 @@ import { useState, useRef, useEffect } from "react";
 import BackgroundVideo from "../components/BackgroundVideo";
 import { getFullnodeUrl, SuiClient } from "@mysten/sui/client";
 import { SealClient } from "@mysten/seal";
+import { Transaction } from "@mysten/sui/transactions";
+import { useSignAndExecuteTransaction } from "@mysten/dapp-kit";
 /** ---------- Types ---------- */
 type Row = Record<string, string>;
 
@@ -98,19 +100,20 @@ function splitCSVLine(line: any): string[] {
   out.push(cur);
   return out.map((s) => s.trim());
 }
-=======
->>>>>>> 2095c7a (Hello world)
 
 export default function DataPage(): JSX.Element {
   const [cols, setCols] = useState<string[]>([]);
   const [rows, setRows] = useState<Row[]>([]);
   const [csvVault, setCsvVault] = useState<string>("");
+  const [vault, setVault] = useState<Vault | null>(null);
   const [vaultList, setVaultList] = useState<Vault[]>([]);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const whitelistedId = "0x18959ea37ee943aae83b0a40662d3b94cb4b78070be8c9275178da0966094553";
   const suiClient = new SuiClient({ url: getFullnodeUrl('testnet') });
-  const packageId = '0x3f00d30514f3a610ec8f9297b63325b439fc293199e9b0eb63847d08fc4eca50';
+  const packageId = '0x560830e123ecf343fb5f9dd8339fcbec8bca0c232dc4615ba4b4b2ee0db2865f';
+  const STORAGE_ID = '0x29ee0e7fb4d9867235899cdccdda33ad365f78241ca6f208ba2a9fb66e242c11';
   const PUBLISHER = "https://publisher.walrus-testnet.walrus.space";
+  const { mutate: signAndExecuteTransaction } = useSignAndExecuteTransaction();
   const serverObjectIds = [
     "0x164ac3d2b3b8694b8181c13f671950004765c23f270321a45fdd04d40cccf0f2", 
     "0x5466b7df5c15b508678d51496ada8afab0d6f70a01c10613123382b1b8131007"
@@ -163,6 +166,29 @@ export default function DataPage(): JSX.Element {
     } catch (err) {
       console.error("Erreur lors de la récupération des vaults:", err);
       return [];
+    }
+  }
+
+  async function fetchContainer(containerId: string) {
+    try {
+      const response = await fetch("https://fullnode.testnet.sui.io:443", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          id: 1,
+          method: "sui_getObject",
+          params: [
+            containerId,
+            { showType: true, showOwner: false, showContent: true },
+          ],
+        }),
+      });
+      const json = await response.json();
+      return json?.result?.data?.content?.fields;
+    } catch (e) {
+      console.error("Failed to fetch container", e);
+      return null;
     }
   }
   
@@ -226,21 +252,30 @@ export default function DataPage(): JSX.Element {
     if (inputRef.current) inputRef.current.value = "";
   }
 
-  function onPublishDemo(e: React.FormEvent<HTMLFormElement>): void {
+  async function onPublishDemo(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const f = e.target.files?.[0];
-    if (!f) return;
     if (!rows.length) {
       alert("Upload a CSV first.");
       return;
     }
-    storeCSV_flie(f)
+    if (!vault?.fields?.container_addr) {
+      alert("Select a vault first.");
+      return;
+    }
+    const f = inputRef.current?.files?.[0];
+    if (!f) {
+      alert("Pick a CSV file first.");
+      return;
+    }
+
+    const blobId = await storeCSV_flie(f);
+    await submitToVault(vault.fields.container_addr, String(blobId));
     clearCSV();
   }
 
   /** ---------- API Walrus ---------- */
   
-  const storeCSV_flie = async(csv_file: File) => {
+  const storeCSV_flie = async(csv_file: File): Promise<string> => {
     const text = await csv_file?.text();
     const sealed_data = new TextEncoder().encode(text);
     console.log("Encrypting data...");
@@ -267,7 +302,72 @@ export default function DataPage(): JSX.Element {
 
     // Walrus publisher returns JSON with info about the blob
     const data = await res.json();
-    console.log("Publisher response:", data);
+    console.log("Publisher response:", data?.newlyCreated.blobObject.blobId);
+    const id = data?.newlyCreated.blobObject.blobId;
+    if (!id) throw new Error("Publisher response missing blob id");
+    return String(id);
+  }
+  async function submitToVault(containerId: string, blobId: string) {
+    if (!containerId) return;
+    const tx = new Transaction();
+
+    tx.moveCall({
+      target: `${packageId}::CleanWater::submit_data`,
+      arguments: [tx.object(containerId), tx.pure.string(blobId)],
+    });
+
+    await new Promise<void>((resolve, reject) =>
+      signAndExecuteTransaction(
+        {
+          transaction: tx,
+          chain: 'sui:testnet',
+        },
+        {
+          onSuccess: (result) => {
+            console.log('executed transaction', result);
+            resolve();
+          },
+          onError: (err) => {
+            console.error(err);
+            reject(err);
+          }
+        },
+      )
+    );
+  }
+
+  async function createVaultOnChain(params: { title: string; amount: number; max: number }) {
+    const { title, amount, max } = params;
+    const tx = new Transaction();
+
+    const coin = tx.splitCoins(tx.gas, [tx.pure.u64(amount)]);
+
+    tx.moveCall({
+      target: `${packageId}::CleanWater::create_vault`,
+      arguments: [
+        tx.object(STORAGE_ID),
+        tx.pure.string(title),
+        tx.pure.u64(amount),
+        coin,
+        tx.pure.u32(max),
+      ],
+    });
+
+    await new Promise<void>((resolve, reject) =>
+      signAndExecuteTransaction(
+        { transaction: tx, chain: 'sui:testnet' },
+        {
+          onSuccess: () => resolve(),
+          onError: (err) => reject(err),
+        },
+      )
+    );
+
+    const vs = await fetchVaults();
+    setVaultList(vs);
+    const first = vs[0] ?? null;
+    setVault(first);
+    setCsvVault(first?.fields?.container_addr ?? "");
   }
   /** ---------- Charge les vaults au montage ---------- */
   useEffect(() => {
@@ -277,7 +377,9 @@ export default function DataPage(): JSX.Element {
       if (!cancelled) {
         setVaultList(vs);
         // pré-sélection du premier vault si vide
-        const firstAddr = vs[0]?.fields?.container_addr;
+        const first = vs[0] ?? null;
+        const firstAddr = first?.fields?.container_addr;
+        setVault(first);
         if (!csvVault && typeof firstAddr === "string" && firstAddr.length > 0) {
           setCsvVault(firstAddr);
         }
@@ -288,6 +390,16 @@ export default function DataPage(): JSX.Element {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // chargement unique
+
+  // Optionally fetch full container info when selection changes
+  useEffect(() => {
+    (async () => {
+      const addr = vault?.fields?.container_addr;
+      if (!addr) return;
+      const info = await fetchContainer(addr);
+      console.log("Selected vault container info:", info);
+    })();
+  }, [vault]);
 
   function getVaultLabel(v: Vault): string {
     return v.fields?.title || "Unknown Vault";
@@ -308,8 +420,13 @@ export default function DataPage(): JSX.Element {
           <div className="mb-3">
             <label className="block text-sm text-white/70">CSV Vault Name</label>
             <select
-              value={csvVault}
-              onChange={(e) => setCsvVault(e.target.value)}
+              value={vault?.fields?.container_addr ?? ""}
+              onChange={(e) => {
+                const addr = e.target.value;
+                const v = vaultList.find((x) => x.fields?.container_addr === addr) ?? null;
+                setVault(v);
+                setCsvVault(addr);
+              }}
               className="mt-1 w-full rounded-lg bg-white/10 border border-white/10 px-3 py-2"
             >
               {vaultList.length > 0 ? (

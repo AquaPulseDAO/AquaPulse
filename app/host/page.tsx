@@ -41,7 +41,7 @@ export default function HostPage() {
 
 
         // console.log(tx);
-        await signAndExecuteTransaction(
+        signAndExecuteTransaction(
           {
             transaction: tx,
             chain: 'sui:testnet',
