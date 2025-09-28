@@ -32,19 +32,29 @@ export type Vault = {
     temp?: number;
   };
   
-  export async function fetchVaultDataDemo(vaultId: string): Promise<{ name: string; location?: string; readings: Reading[] }> {
+  export async function fetchVaultDataDemo(
+    vaultId: string
+  ): Promise<{ name: string; location?: string; readings: Reading[] }> {
     const base = Date.now() - 1000 * 60 * 60 * 24;
+  
+    // Un seul point d'ancrage (Paris) — pas de baseCoords par vault
+    const LAT0 = 48.8566;
+    const LON0 = 2.3522;
+  
     const readings: Reading[] = Array.from({ length: 48 }).map((_, i) => ({
-      t: base + i * 60 * 30 * 1000,
+      t: base + i * 30 * 60 * 1000,
+      lat: LAT0 + Math.sin(i / 12) * 0.001,
+      lon: LON0 + Math.cos(i / 12) * 0.001,
       ph: 7 + Math.sin(i / 7) * 0.15,
       ec: 290 + Math.cos(i / 6) * 8,
       ntu: 8 + Math.abs(Math.sin(i / 9)) * 3,
       temp: 18 + Math.cos(i / 10) * 1.5,
+      // device: "sensor-A", // optionnel
     }));
+  
     return {
       name: `Vault ${vaultId.toUpperCase()}`,
       location: "Demo location",
       readings,
     };
   }
-  
