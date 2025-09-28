@@ -70,7 +70,6 @@ export default function VaultDetailPage() {
           {name}
         </h1>
         {location && <p className="text-lg text-slate-200/90 mt-1">{location}</p>}
-
         {/* Tableau des septuplés */}
         <section className="mt-10">
           <h2 className="text-2xl font-bold mb-3">Stored Data</h2>

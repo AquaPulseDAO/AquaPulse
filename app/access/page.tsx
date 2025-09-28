@@ -146,6 +146,7 @@ export default function AccessPage() {
         console.log("Error occured")
         console.log("Error:", error);
         console.log(error);
+        console.log(false)
         return false
     }
 }
@@ -194,13 +195,15 @@ async function fetchOwnerCapsFor(address?: string): Promise<string[]> {
 
   const canAccess = useMemo(() => new Set(caps), [caps]);
 
-  async function openVault(v: Vault) {
-
+  const openVault = async(v: Vault) => {
     let access_allowed = await access_control();
-    if (access_allowed){
+    if (access_allowed){  
+      console.log("Helo");
       router.push(`/vault/${v.id}`)
     } 
-    else router.push(`/access-denied?vid=${encodeURIComponent(v.id)}`);
+    else {
+      router.push(`/access-denied?vid=${encodeURIComponent(v.id)}`)
+    } ;
   }
 
   return (

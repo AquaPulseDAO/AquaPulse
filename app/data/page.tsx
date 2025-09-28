@@ -276,20 +276,20 @@ export default function DataPage(): JSX.Element {
   const storeCSV_flie = async(csv_file: File): Promise<string> => {
     const text = await csv_file?.text();
     const sealed_data = new TextEncoder().encode(text);
-    console.log("Encrypting data...");
-    const { encryptedObject: encryptedBytes, key: backupKey } = await sealClient.encrypt({
-        threshold: 1,
-        packageId: packageId,
-        id: whitelistedId,
-        data: sealed_data
-    });
-    console.log("Encrypted data: ", encryptedBytes);
+    // console.log("Encrypting data...");
+    // const { encryptedObject: encryptedBytes, key: backupKey } = await sealClient.encrypt({
+    //     threshold: 1,
+    //     packageId: packageId,
+    //     id: whitelistedId,
+    //     data: sealed_data
+    // });
+    // console.log("Encrypted data: ", encryptedBytes);
     const res = await fetch(`${PUBLISHER}/v1/blobs?epochs=10`, {
       method: "PUT",
       headers: {
         "Content-Type": "text/plain",
       },
-      body: encryptedBytes,
+      body: sealed_data,
     });
 
     if (!res.ok) {
