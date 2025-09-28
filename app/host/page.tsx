@@ -23,9 +23,10 @@ export default function HostPage() {
       console.log(tx);
       const [coin] = tx.splitCoins(tx.gas, [Number(coins)]);
       console.log(coin)
-      const packageId = '0x3f00d30514f3a610ec8f9297b63325b439fc293199e9b0eb63847d08fc4eca50';
+      const packageId = '0x560830e123ecf343fb5f9dd8339fcbec8bca0c232dc4615ba4b4b2ee0db2865f';
+      const storageId = '0x29ee0e7fb4d9867235899cdccdda33ad365f78241ca6f208ba2a9fb66e242c11';
       tx.moveCall({ 
-          arguments: [tx.pure.u64(coins), coin, tx.pure.u32(Number(maxPeople))],
+          arguments: [tx.object(storageId), tx.pure.string(title), tx.pure.u64(coins), coin, tx.pure.u32(Number(maxPeople))],
           target: `${packageId}::CleanWater::create_vault`
         });
 
@@ -89,7 +90,7 @@ export default function HostPage() {
               <input
                 type="number"
                 value={coins}
-                onChange={(e) => setCoins(Math.max(0, Number(e.target.value)))}
+                onChange={(e) => setCoins(e.target.value)}
                 placeholder="0"
                 className="w-full rounded-xl border border-white/10 bg-white/10 p-3 text-white placeholder-gray-300 outline-none focus:ring-2 focus:ring-sky-400/50"
               />
@@ -99,7 +100,7 @@ export default function HostPage() {
               <input
                 type="number"
                 value={maxPeople}
-                onChange={(e) => setMaxPeople(Math.max(0, Number(e.target.value)))}
+                onChange={(e) => setMaxPeople(e.target.value)}
                 placeholder="0"
                 className="w-full rounded-xl border border-white/10 bg-white/10 p-3 text-white placeholder-gray-300 outline-none focus:ring-2 focus:ring-sky-400/50"
               />

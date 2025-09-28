@@ -9,7 +9,35 @@ export default function DataPage() {
   const [csvVault, setCsvVault] = useState("");
   const [vaultList, setVaultList] = useState([]); // Liste des vaults
   const inputRef = useRef(null);
+  const main = async() => {
+    const objectId = "0x29ee0e7fb4d9867235899cdccdda33ad365f78241ca6f208ba2a9fb66e242c11"; // Replace with your object ID
+    
+    const response = await fetch("https://fullnode.testnet.sui.io:443", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        id: 1,
+        method: "sui_getObject",
+        params: [objectId,
+            {
+                "showType": true,
+                "showOwner": false,
+                "showPreviousTransaction": true,
+                "showDisplay": false,
+                "showContent": true,
+                "showBcs": false,
+                "showStorageRebate": true
+            }
+        ],
+      }),
+    });
+    
+    const data = await response.json();
 
+    console.log(data.result.data.content.fields.storage);
+    return data
+}
   function splitCSVLine(line) {
     const out = [];
     let cur = "";
