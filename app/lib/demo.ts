@@ -22,7 +22,15 @@ export type Vault = {
   }
   
   /** ------- Vault detail demo data ------- */
-  export type Reading = { t: number; ph: number; ec: number; ntu: number; temp: number };
+  export type Reading = {
+    device?: string;   // ✅ ajouté
+    lat: number;
+    lon: number;
+    ph?: number;
+    ec?: number;
+    ntu?: number;
+    temp?: number;
+  };
   
   export async function fetchVaultDataDemo(vaultId: string): Promise<{ name: string; location?: string; readings: Reading[] }> {
     const base = Date.now() - 1000 * 60 * 60 * 24;
